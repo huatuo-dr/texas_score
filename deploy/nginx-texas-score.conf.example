@@ -1,0 +1,68 @@
+# 德州记分 · Nginx 站点配置示例（复制到服务器后修改）
+#
+# 用法示例：
+#   sudo cp deploy/nginx-texas-score.conf.example /etc/nginx/conf.d/texas-score.conf
+#   # 或 sites-available + ln -s 到 sites-enabled
+#   sudo vim /etc/nginx/conf.d/texas-score.conf   # 改 server_name / listen
+#   sudo nginx -t && sudo systemctl reload nginx
+#
+# 默认站点目录与 scripts/deploy.sh 的 DEPLOY_DIR 一致：/var/www/texas-score
+# 注意：root 指向该目录本身（目录内直接是 index.html），不是 .../dist 子目录。
+
+# ---------- 方案 A：子域名（推荐，可再配合 certbot 上 HTTPS）----------
+server {
+    listen 80;
+    server_name poker.your-domain.com;   # ← 改成你的域名
+
+    root /var/www/texas-score;
+    index index.html;
+
+    # 入口 HTML 禁止长缓存：发版后旧 index 会引用已删除的 /assets/* hash 文件 → 白屏/404
+    location = /index.html {
+        add_header Cache-Control "no-cache";
+    }
+
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+
+    # Vite 带 content hash 的构建产物可长缓存
+    location /assets/ {
+        expires 30d;
+        add_header Cache-Control "public, immutable";
+    }
+
+    # 无 hash 的站标等（按需开启）
+    # location = /favicon.svg {
+    #     add_header Cache-Control "no-cache";
+    # }
+
+    gzip on;
+    gzip_types text/css application/javascript application/json image/svg+xml;
+    gzip_min_length 1024;
+}
+
+# ---------- 方案 B：独立端口快速验证（与上面二选一；启用时注释掉方案 A）----------
+# server {
+#     listen 8088;
+#     server_name _;
+#
+#     root /var/www/texas-score;
+#     index index.html;
+#
+#     location = /index.html {
+#         add_header Cache-Control "no-cache";
+#     }
+#
+#     location / {
+#         try_files $uri $uri/ /index.html;
+#     }
+#
+#     location /assets/ {
+#         expires 30d;
+#         add_header Cache-Control "public, immutable";
+#     }
+#
+#     gzip on;
+#     gzip_types text/css application/javascript application/json image/svg+xml;
+# }
