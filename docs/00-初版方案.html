@@ -1,0 +1,1197 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>德州扑克记分工具 · 初版方案</title>
+  <style>
+    :root {
+      --bg: #0f1419;
+      --surface: #1a2332;
+      --surface-2: #243044;
+      --border: #2d3a4f;
+      --text: #e7ecf3;
+      --text-muted: #9aa8bc;
+      --accent: #3b82f6;
+      --accent-soft: rgba(59, 130, 246, 0.15);
+      --green: #22c55e;
+      --green-soft: rgba(34, 197, 94, 0.15);
+      --red: #ef4444;
+      --red-soft: rgba(239, 68, 68, 0.15);
+      --amber: #f59e0b;
+      --amber-soft: rgba(245, 158, 11, 0.15);
+      --radius: 12px;
+      --shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+      --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      --sans: "PingFang SC", "Noto Sans SC", "Microsoft YaHei", system-ui, -apple-system, sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      font-family: var(--sans);
+      background: radial-gradient(1200px 600px at 10% -10%, #1e3a5f 0%, transparent 50%),
+                  radial-gradient(900px 500px at 100% 0%, #1a2e1a 0%, transparent 45%),
+                  var(--bg);
+      color: var(--text);
+      line-height: 1.7;
+      font-size: 16px;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 240px minmax(0, 880px);
+      gap: 32px;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 32px 24px 80px;
+    }
+
+    nav {
+      position: sticky;
+      top: 24px;
+      align-self: start;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px 12px;
+      box-shadow: var(--shadow);
+      max-height: calc(100vh - 48px);
+      overflow: auto;
+    }
+    nav .nav-title {
+      font-size: 12px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      padding: 4px 10px 10px;
+      font-weight: 600;
+    }
+    nav a {
+      display: block;
+      color: var(--text-muted);
+      text-decoration: none;
+      padding: 8px 10px;
+      border-radius: 8px;
+      font-size: 14px;
+      transition: background 0.15s, color 0.15s;
+    }
+    nav a:hover { background: var(--surface-2); color: var(--text); }
+    nav a.active { background: var(--accent-soft); color: var(--accent); }
+
+    main { min-width: 0; }
+
+    header.doc-header {
+      background: linear-gradient(135deg, var(--surface) 0%, #1a2838 100%);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 28px 28px 24px;
+      margin-bottom: 28px;
+      box-shadow: var(--shadow);
+    }
+    .badge-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      color: #93c5fd;
+      border: 1px solid rgba(59, 130, 246, 0.35);
+    }
+    .badge.ok {
+      background: var(--green-soft);
+      color: #86efac;
+      border-color: rgba(34, 197, 94, 0.35);
+    }
+    .badge.warn {
+      background: var(--amber-soft);
+      color: #fcd34d;
+      border-color: rgba(245, 158, 11, 0.35);
+    }
+    header h1 {
+      margin: 0 0 8px;
+      font-size: 28px;
+      letter-spacing: -0.02em;
+      line-height: 1.25;
+    }
+    header .subtitle {
+      margin: 0;
+      color: var(--text-muted);
+      font-size: 15px;
+    }
+    header .meta {
+      margin-top: 18px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 10px;
+    }
+    header .meta-item {
+      background: rgba(0,0,0,0.2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 12px;
+    }
+    header .meta-item .k {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+    header .meta-item .v {
+      font-size: 14px;
+      font-weight: 600;
+      margin-top: 2px;
+    }
+
+    section {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px 26px;
+      margin-bottom: 20px;
+      box-shadow: var(--shadow);
+    }
+    section h2 {
+      margin: 0 0 16px;
+      font-size: 20px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    section h2 .num {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 28px;
+      height: 28px;
+      border-radius: 8px;
+      background: var(--accent-soft);
+      color: #93c5fd;
+      font-size: 13px;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+    h3 {
+      margin: 22px 0 10px;
+      font-size: 16px;
+      color: #dbe7f7;
+    }
+    h3:first-of-type { margin-top: 4px; }
+    p { margin: 0 0 12px; color: #d5deea; }
+    ul, ol { margin: 0 0 12px; padding-left: 1.3em; color: #d5deea; }
+    li { margin: 6px 0; }
+    li ul { margin-top: 4px; margin-bottom: 4px; }
+    strong { color: #fff; font-weight: 600; }
+    code {
+      font-family: var(--mono);
+      font-size: 0.9em;
+      background: rgba(0,0,0,0.35);
+      border: 1px solid var(--border);
+      padding: 1px 6px;
+      border-radius: 6px;
+      color: #bfdbfe;
+    }
+
+    .callout {
+      border-radius: 12px;
+      padding: 14px 16px;
+      margin: 14px 0;
+      border: 1px solid var(--border);
+      background: rgba(0,0,0,0.18);
+    }
+    .callout.info { border-color: rgba(59, 130, 246, 0.4); background: var(--accent-soft); }
+    .callout.ok { border-color: rgba(34, 197, 94, 0.4); background: var(--green-soft); }
+    .callout.warn { border-color: rgba(245, 158, 11, 0.4); background: var(--amber-soft); }
+    .callout .title {
+      font-weight: 700;
+      font-size: 13px;
+      margin-bottom: 6px;
+      letter-spacing: 0.02em;
+    }
+    .callout.info .title { color: #93c5fd; }
+    .callout.ok .title { color: #86efac; }
+    .callout.warn .title { color: #fcd34d; }
+    .callout p:last-child, .callout ul:last-child { margin-bottom: 0; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+      margin: 12px 0 16px;
+      overflow: hidden;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+    }
+    th, td {
+      border-bottom: 1px solid var(--border);
+      padding: 10px 12px;
+      text-align: left;
+      vertical-align: top;
+    }
+    th {
+      background: rgba(0,0,0,0.28);
+      color: var(--text-muted);
+      font-weight: 600;
+      font-size: 12px;
+      letter-spacing: 0.03em;
+    }
+    tr:last-child td { border-bottom: none; }
+    td { color: #d5deea; }
+    tr:hover td { background: rgba(255,255,255,0.02); }
+
+    .tag {
+      display: inline-block;
+      font-size: 12px;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: var(--surface-2);
+      color: var(--text-muted);
+      white-space: nowrap;
+    }
+    .tag.in { color: #86efac; border-color: rgba(34,197,94,.35); background: var(--green-soft); }
+    .tag.out { color: #fca5a5; border-color: rgba(239,68,68,.35); background: var(--red-soft); }
+    .tag.later { color: #fcd34d; border-color: rgba(245,158,11,.35); background: var(--amber-soft); }
+
+    .wireframe {
+      background: #0b1018;
+      border: 1px dashed #3a4a63;
+      border-radius: 16px;
+      padding: 16px;
+      max-width: 360px;
+      margin: 16px auto;
+      font-size: 13px;
+    }
+    .wireframe .phone-bar {
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 11px;
+      margin-bottom: 10px;
+      letter-spacing: 0.06em;
+    }
+    .wf-card {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 12px;
+      margin-bottom: 10px;
+    }
+    .wf-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      align-items: center;
+      margin: 4px 0;
+    }
+    .wf-muted { color: var(--text-muted); }
+    .wf-btn {
+      display: inline-block;
+      background: #2563eb;
+      color: white;
+      border-radius: 8px;
+      padding: 6px 10px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .wf-btn.ghost {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+    }
+    .wf-btn.danger {
+      background: transparent;
+      border: 1px solid rgba(239,68,68,.45);
+      color: #fca5a5;
+    }
+    .wf-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 11px;
+    }
+    .wf-table th, .wf-table td {
+      border: 1px solid var(--border);
+      padding: 6px 4px;
+      text-align: center;
+    }
+    .wf-table th { background: rgba(0,0,0,0.25); font-size: 10px; }
+    .wf-green { color: #4ade80; font-weight: 700; }
+    .wf-red { color: #f87171; font-weight: 700; }
+    .wf-stepper {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 2px 4px;
+      background: rgba(0,0,0,0.25);
+    }
+    .wf-stepper span {
+      min-width: 28px;
+      text-align: center;
+      font-family: var(--mono);
+    }
+
+    .formula {
+      font-family: var(--mono);
+      background: #0b1018;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px 14px;
+      margin: 10px 0 14px;
+      overflow-x: auto;
+      font-size: 13px;
+      color: #bfdbfe;
+      line-height: 1.6;
+    }
+
+    .checklist li { list-style: none; margin-left: -0.5em; }
+    .checklist li::before {
+      content: "☐ ";
+      color: var(--text-muted);
+      font-family: var(--mono);
+    }
+
+    .changelog li { margin: 8px 0; }
+
+    footer {
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 13px;
+      padding: 8px 0 24px;
+    }
+
+    @media (max-width: 860px) {
+      .layout {
+        grid-template-columns: 1fr;
+        padding: 16px 14px 60px;
+        gap: 16px;
+      }
+      nav {
+        position: static;
+        max-height: none;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px;
+        padding: 12px;
+      }
+      nav .nav-title { width: 100%; padding-bottom: 4px; }
+      nav a { padding: 6px 10px; font-size: 13px; }
+      section { padding: 18px 16px; }
+      header.doc-header { padding: 20px 16px; }
+      header h1 { font-size: 22px; }
+    }
+
+    @media print {
+      body { background: white; color: #111; }
+      nav { display: none; }
+      .layout { display: block; max-width: none; }
+      section, header.doc-header {
+        box-shadow: none;
+        border-color: #ccc;
+        background: white;
+        break-inside: avoid;
+      }
+      p, li, td { color: #222; }
+      strong { color: #000; }
+    }
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <nav aria-label="目录">
+      <div class="nav-title">目录</div>
+      <a href="#overview">1. 概述</a>
+      <a href="#goals">2. 目标与边界</a>
+      <a href="#features">3. 功能清单</a>
+      <a href="#rules">4. 业务规则</a>
+      <a href="#ui">5. 界面与交互</a>
+      <a href="#data">6. 数据模型</a>
+      <a href="#persist">7. 本地持久化</a>
+      <a href="#share">8. 分享图片</a>
+      <a href="#tech">9. 技术建议</a>
+      <a href="#nfr">10. 非功能要求</a>
+      <a href="#oos">11. 明确不做</a>
+      <a href="#accept">12. 验收标准</a>
+      <a href="#open">13. 已拍板与残余待定</a>
+      <a href="#changelog">14. 修订记录</a>
+    </nav>
+
+    <main>
+      <header class="doc-header">
+        <div class="badge-row">
+          <span class="badge">文档编号 · 00</span>
+          <span class="badge ok">状态 · 二轮审查已合入</span>
+          <span class="badge warn">版本 · 初版 V1.2</span>
+        </div>
+        <h1>德州扑克记分工具<br />初版产品与技术方案</h1>
+        <p class="subtitle">
+          面向手机竖屏场景的本地单页记分工具：记录买入/剩余，自动计算盈亏，
+          支持校验、排序与结果图片分享。数据仅存浏览器本地，不依赖云端。
+        </p>
+        <div class="meta">
+          <div class="meta-item">
+            <div class="k">产品名称</div>
+            <div class="v">德州扑克记分工具</div>
+          </div>
+          <div class="meta-item">
+            <div class="k">文档日期</div>
+            <div class="v">2026-07-27</div>
+          </div>
+          <div class="meta-item">
+            <div class="k">目标终端</div>
+            <div class="v">手机竖屏优先</div>
+          </div>
+          <div class="meta-item">
+            <div class="k">数据策略</div>
+            <div class="v">仅本地持久化</div>
+          </div>
+        </div>
+      </header>
+
+      <!-- 1 -->
+      <section id="overview">
+        <h2><span class="num">1</span>概述</h2>
+        <p>
+          家庭局 / 朋友局德州扑克结束后，需要快速统计每人买入筹码、剩余筹码与盈亏，
+          并核对全场筹码是否守恒。本工具提供<strong>现场可操作的记分面板</strong>，
+          以「手」为可配置的加减步长单位，在手机上完成录入、校验与结果分享。
+        </p>
+        <div class="callout info">
+          <div class="title">核心公式</div>
+          <div class="formula">
+            结果(盈亏) = 剩余 − 买入<br />
+            校验合计 = Σ 结果　　　期望值：0<br />
+            总筹码　 = Σ 买入<br />
+            总人数　 = 人员列表长度
+          </div>
+          <p>允许买入、剩余、结果出现负数，以兼容纠错与特殊记账场景。界面与文档统一使用「买入」，不再使用「总数」。</p>
+        </div>
+      </section>
+
+      <!-- 2 -->
+      <section id="goals">
+        <h2><span class="num">2</span>目标与边界</h2>
+        <h3>2.1 初版目标</h3>
+        <ul>
+          <li>手机竖屏下一屏完成「加人 → 记买入 → 记剩余 → 看盈亏 → 校验 → 分享」。</li>
+          <li>关闭页面后再次打开，当前场次数据不丢失（浏览器本地存储）。</li>
+          <li>交互简单、触控友好：大按钮、少层级、危险操作有确认。</li>
+          <li>窄屏底栏自适应，避免五个操作键挤在一行。</li>
+        </ul>
+        <h3>2.2 设计原则</h3>
+        <ul>
+          <li><strong>本地优先</strong>：无账号、无服务器、无云同步。</li>
+          <li><strong>可纠错</strong>：数值可手改、可负数；不因「不合理」强拦截正常改数。</li>
+          <li><strong>整数记账</strong>：买入、剩余、「一手」均为整数，禁止小数与非法字符。</li>
+          <li><strong>可解释</strong>：校验不仅显示是否为 0，还显示差额及多码/少码含义。</li>
+          <li><strong>YAGNI</strong>：初版不做历史场次、不做云端、不做撤销栈、不做转账结算方案。</li>
+        </ul>
+      </section>
+
+      <!-- 3 -->
+      <section id="features">
+        <h2><span class="num">3</span>功能清单（初版范围）</h2>
+        <table>
+          <thead>
+            <tr>
+              <th style="width:28%">功能</th>
+              <th>说明</th>
+              <th style="width:14%">优先级</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>一手筹码配置</strong></td>
+              <td>
+                可设置「一手」对应的数量（正整数，默认 <strong>2000</strong>）。
+                仅作为「买入」左右 <code>+/−</code> 的步长；修改后<strong>只影响之后</strong>的 +/−，不回溯已有买入。
+                同时作为<strong>新人员默认买入与默认剩余</strong>，以及<strong>清空记分后的买入/剩余重置值</strong>。
+              </td>
+              <td><span class="tag in">P0</span></td>
+            </tr>
+            <tr>
+              <td><strong>添加人员</strong></td>
+              <td>
+                点击后立即在<strong>数据列表末尾</strong>插入一行；默认 <strong>买入 = 当前一手</strong>，<strong>剩余 = 当前一手</strong>，结果 = 0；
+                展示顺序遵循当前 <code>sortMode</code>；插入后<strong>自动 focus 该行姓名输入框</strong>。
+              </td>
+              <td><span class="tag in">P0</span></td>
+            </tr>
+            <tr>
+              <td><strong>修改姓名</strong></td>
+              <td>列表中姓名可直接编辑。</td>
+              <td><span class="tag in">P0</span></td>
+            </tr>
+            <tr>
+              <td><strong>删除人员</strong></td>
+              <td>删除单行；<strong>必须二次确认</strong>；确认后不可撤销。</td>
+              <td><span class="tag in">P0</span></td>
+            </tr>
+            <tr>
+              <td><strong>清空（两种）</strong></td>
+              <td>
+                <strong>a. 清空人员</strong>：删除全部人员；<br />
+                <strong>b. 清空记分</strong>：保留人员与姓名，每人买入与剩余均重置为当前一手（结果归 0）。<br />
+                均需二次确认；确认后不可撤销。
+              </td>
+              <td><span class="tag in">P0</span></td>
+            </tr>
+            <tr>
+              <td><strong>买入录入</strong></td>
+              <td>
+                支持手动输入整数（含负数）；左右提供 <code>−</code> / <code>+</code>，
+                每次按当前「一手」配置增减。
+              </td>
+              <td><span class="tag in">P0</span></td>
+            </tr>
+            <tr>
+              <td><strong>剩余录入</strong></td>
+              <td>支持手动输入整数（含负数）；不提供按一手加减（初版）。</td>
+              <td><span class="tag in">P0</span></td>
+            </tr>
+            <tr>
+              <td><strong>结果自动计算</strong></td>
+              <td>
+                只读，不可手动编辑。
+                <code>结果 = 剩余 − 买入</code>；买入或剩余变化时立即更新。
+              </td>
+              <td><span class="tag in">P0</span></td>
+            </tr>
+            <tr>
+              <td><strong>结果高亮</strong></td>
+              <td>≥ 0 显示绿色；&lt; 0 显示红色。</td>
+              <td><span class="tag in">P0</span></td>
+            </tr>
+            <tr>
+              <td><strong>校验</strong></td>
+              <td>
+                点击「校验」展示所有结果之和。为 0 表示账平；非 0 展示差额，
+                并说明是「多出来的筹码」还是「少了的筹码」。
+              </td>
+              <td><span class="tag in">P0</span></td>
+            </tr>
+            <tr>
+              <td><strong>总筹码</strong></td>
+              <td>始终展示：所有「买入」之和。</td>
+              <td><span class="tag in">P0</span></td>
+            </tr>
+            <tr>
+              <td><strong>总人数</strong></td>
+              <td>始终展示：当前人员数量。</td>
+              <td><span class="tag in">P0</span></td>
+            </tr>
+            <tr>
+              <td><strong>按结果排序</strong></td>
+              <td>支持按结果排序（建议默认降序：赢多的在上）；可切换升/降序或恢复录入顺序。</td>
+              <td><span class="tag in">P0</span></td>
+            </tr>
+            <tr>
+              <td><strong>本地持久化</strong></td>
+              <td>使用浏览器本地存储；关页再开数据仍在。不做云端。</td>
+              <td><span class="tag in">P0</span></td>
+            </tr>
+            <tr>
+              <td><strong>分享结果图片</strong></td>
+              <td>将本场汇总渲染为图片，支持保存/系统分享（移动端能力以内）。</td>
+              <td><span class="tag in">P0</span></td>
+            </tr>
+            <tr>
+              <td><strong>底栏自适应</strong></td>
+              <td>
+                宽屏展示全部操作；窄屏仅展示「添加」「校验」「更多」，
+                排序 / 分享 / 清空类操作收入「更多」。
+              </td>
+              <td><span class="tag in">P0</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <!-- 4 -->
+      <section id="rules">
+        <h2><span class="num">4</span>业务规则</h2>
+
+        <h3>4.1 数值与输入规则</h3>
+        <ul>
+          <li><strong>买入、剩余、结果均允许负数。</strong></li>
+          <li><strong>强制整数</strong>：买入、剩余、「一手」配置只接受整数；禁止 <code>1.5</code>、<code>abc</code>、<code>3%!</code> 等非法内容。</li>
+          <li>非法输入不写入状态（过滤或拒绝），不得落库脏值。</li>
+          <li><strong>编辑中允许暂时为空</strong>，避免输入过程被强制改写打断；<strong>失焦时若为空串或无法解析为整数 → 规范为 0</strong>。</li>
+          <li>仅输入 <code>-</code> 等中间态：编辑中可暂留；失焦无法解析为整数则 → 0。</li>
+          <li>粘贴含小数或非数字内容：不接受为有效非整数（按非法处理）。</li>
+          <li><code>+/−</code> 步进始终在整数上按当前「一手」加减。</li>
+          <li>结果始终由公式计算：<code>remain - buyIn</code>；加载后以公式重算为准。</li>
+        </ul>
+
+        <h3>4.2 「一手」配置规则</h3>
+        <ul>
+          <li>配置项名称：<strong>一手对应筹码数量</strong>（简称「一手」）。</li>
+          <li>合法范围：正整数，最小值 1；非法输入时提示并回退到上一次合法值。默认 <strong>2000</strong>。</li>
+          <li>修改「一手」后：
+            <ul>
+              <li><strong>已有人员的买入、剩余、结果保持不变</strong>；</li>
+              <li>此后点击买入旁的 <code>+</code> / <code>−</code>，按<strong>新的一手数量</strong>增减；</li>
+              <li>此后<strong>新添加人员</strong>的默认买入与默认剩余 = 新的一手数量（结果为 0）；</li>
+              <li>此后执行<strong>清空记分</strong>时，买入与剩余均重置为新的一手数量（结果为 0）。</li>
+            </ul>
+          </li>
+          <li>「一手」本身会持久化保存。</li>
+        </ul>
+
+        <h3>4.3 人员规则</h3>
+        <ul>
+          <li><strong>添加人员</strong>：
+            <ol>
+              <li><strong>数据层</strong>：始终追加到人员数组末尾，分配新的 <code>order</code>（递增）；</li>
+              <li>默认：姓名为空（展示占位「未命名」）、<strong>买入 = 当前一手</strong>、<strong>剩余 = 当前一手</strong>；</li>
+              <li>结果 = 一手 − 一手 = <strong>0</strong>（开局尚未产生盈亏）；</li>
+              <li><strong>展示层</strong>：按当前 <code>sortMode</code> 排序后渲染（非强制插到视觉末尾）；</li>
+              <li>插入后<strong>立即 focus 该行姓名输入框</strong>（focus 对应数据行，不因排序找不到）。</li>
+            </ol>
+          </li>
+          <li>姓名允许暂时为空；分享图片时用「未命名」或「玩家 N」。</li>
+          <li>初版<strong>不强制姓名唯一</strong>。</li>
+          <li>删除单人：弹出二次确认 → 确认后从列表移除并持久化；不可撤销。</li>
+        </ul>
+
+        <h3>4.4 清空规则（两种）</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>操作</th>
+              <th>人员</th>
+              <th>买入</th>
+              <th>剩余</th>
+              <th>一手配置</th>
+              <th>确认</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>清空人员</strong></td>
+              <td>全部删除</td>
+              <td>—</td>
+              <td>—</td>
+              <td>保留</td>
+              <td>必须二次确认</td>
+            </tr>
+            <tr>
+              <td><strong>清空记分</strong></td>
+              <td>保留姓名</td>
+              <td>全部 = 当前一手</td>
+              <td>全部 = 当前一手</td>
+              <td>保留</td>
+              <td>必须二次确认</td>
+            </tr>
+          </tbody>
+        </table>
+        <ul>
+          <li>两种操作确认后均<strong>不可撤销</strong>（不做 Undo）。</li>
+          <li>确认文案示例：
+            <ul>
+              <li>清空人员：「确定清空全部人员？此操作不可恢复。」</li>
+              <li>清空记分：「确定清空全部记分？将保留人员，买入与剩余均重置为一手（结果归 0）。此操作不可恢复。」</li>
+              <li>删除单人：「确定删除「{姓名}」？此操作不可恢复。」（姓名空则用「未命名」）</li>
+            </ul>
+          </li>
+          <li>UI 入口：窄屏下位于「更多」菜单中的两项（或「清空」子选择 a/b）；宽屏可并列或同属清空分组。</li>
+        </ul>
+
+        <h3>4.5 校验规则</h3>
+        <div class="formula">
+          checksum = sum(player.result)  // 即 sum(剩余 − 买入) = sum(剩余) − sum(买入)
+        </div>
+        <ul>
+          <li><code>checksum === 0</code>：成功态，例如「校验通过，结果合计 = 0」。</li>
+          <li><code>checksum &gt; 0</code>：警示态，例如「账不平，结果合计 = {n}。剩余合计比买入多（多出来的筹码）。」</li>
+          <li><code>checksum &lt; 0</code>：警示态，例如「账不平，结果合计 = {n}。剩余合计比买入少（少了的筹码）。」</li>
+          <li>校验<strong>不拦截</strong>后续编辑，仅提供反馈。</li>
+          <li>建议在汇总区常驻显示「结果合计」，点击「校验」时加强提示（弹层 / Toast / 高亮）。</li>
+        </ul>
+
+        <h3>4.6 排序规则</h3>
+        <ul>
+          <li>排序字段：结果（盈亏）。</li>
+          <li>提供三种 <code>sortMode</code>：
+            <ul>
+              <li><code>manual</code> / 原始顺序：按 <code>order</code> 升序（添加先后）；</li>
+              <li><code>result_desc</code>：结果从大到小，赢家在上；</li>
+              <li><code>result_asc</code>：结果从小到大。</li>
+            </ul>
+          </li>
+          <li>结果相同时：按 <code>order</code> 稳定排序，避免抖动。</li>
+          <li><strong>排序只影响展示顺序</strong>，不改写人员数组的逻辑追加顺序与字段值。</li>
+          <li><strong>在排序视图下添加成员</strong>：数据仍追加到数组末尾并赋予新 <code>order</code>；界面按当前 <code>sortMode</code> 重新排序后展示（新建人结果为 0，会落在 0 分段内）。</li>
+        </ul>
+
+        <h3>4.7 汇总指标</h3>
+        <table>
+          <thead>
+            <tr><th>指标</th><th>计算</th><th>展示</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>总人数</td>
+              <td>人员条数</td>
+              <td>汇总区常驻</td>
+            </tr>
+            <tr>
+              <td>总筹码</td>
+              <td>Σ 买入</td>
+              <td>汇总区常驻</td>
+            </tr>
+            <tr>
+              <td>结果合计</td>
+              <td>Σ 结果</td>
+              <td>汇总区常驻 + 校验强化提示</td>
+            </tr>
+            <tr>
+              <td>一手</td>
+              <td>用户配置</td>
+              <td>配置区常驻</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <!-- 5 -->
+      <section id="ui">
+        <h2><span class="num">5</span>界面与交互（竖屏）</h2>
+
+        <h3>5.1 信息架构</h3>
+        <p>单页应用，自上而下分为四块：</p>
+        <ol>
+          <li><strong>顶栏</strong>：标题 + 一手配置</li>
+          <li><strong>汇总条</strong>：总人数 / 总筹码 / 结果合计（校验状态色）</li>
+          <li><strong>人员记分列表</strong>：主操作区（列：姓名 → 买入 → 剩余 → 结果）</li>
+          <li><strong>底栏操作</strong>：按屏宽自适应（见 5.5）</li>
+        </ol>
+
+        <h3>5.2 线框示意（手机竖屏 · 收纳态）</h3>
+        <div class="wireframe" aria-hidden="true">
+          <div class="phone-bar">─ 竖屏布局示意 ─</div>
+          <div class="wf-card">
+            <div class="wf-row">
+              <strong>德州记分</strong>
+              <span class="wf-muted">一手 <b>2000</b> ✎</span>
+            </div>
+          </div>
+          <div class="wf-card">
+            <div class="wf-row">
+              <span>人数 <b>4</b></span>
+              <span>总筹码 <b>2000</b></span>
+              <span class="wf-green">合计 <b>0</b></span>
+            </div>
+          </div>
+          <div class="wf-card">
+            <table class="wf-table">
+              <thead>
+                <tr>
+                  <th>姓名</th>
+                  <th>买入</th>
+                  <th>剩余</th>
+                  <th>结果</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>张三</td>
+                  <td>
+                    <div class="wf-stepper">
+                      <span>−</span><span>500</span><span>+</span>
+                    </div>
+                  </td>
+                  <td>700</td>
+                  <td class="wf-green">+200</td>
+                  <td>×</td>
+                </tr>
+                <tr>
+                  <td>李四</td>
+                  <td>
+                    <div class="wf-stepper">
+                      <span>−</span><span>500</span><span>+</span>
+                    </div>
+                  </td>
+                  <td>300</td>
+                  <td class="wf-red">−200</td>
+                  <td>×</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="wf-card" style="display:flex;flex-wrap:wrap;gap:8px;">
+            <span class="wf-btn">＋ 添加</span>
+            <span class="wf-btn ghost">校验</span>
+            <span class="wf-btn ghost">⋯ 更多</span>
+          </div>
+          <div class="wf-card" style="font-size:12px;color:var(--text-muted);">
+            更多菜单：排序 · 分享 · 清空人员 · 清空记分
+          </div>
+        </div>
+
+        <h3>5.3 列表列定义</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>列</th>
+              <th>可编辑</th>
+              <th>交互</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>姓名</td>
+              <td>是</td>
+              <td>文本输入；失焦保存；添加人员后自动 focus</td>
+            </tr>
+            <tr>
+              <td>买入</td>
+              <td>是</td>
+              <td>中间整数输入框 + 左右 − / +（步长 = 当前一手）</td>
+            </tr>
+            <tr>
+              <td>剩余</td>
+              <td>是</td>
+              <td>整数输入框</td>
+            </tr>
+            <tr>
+              <td>结果</td>
+              <td>否</td>
+              <td>只读展示；≥0 绿色，&lt;0 红色；正数建议带「+」号</td>
+            </tr>
+            <tr>
+              <td>删除</td>
+              <td>—</td>
+              <td>行尾删除按钮</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3>5.4 触控与布局要求</h3>
+        <ul>
+          <li>优先视口宽度 ≤ 390px 的可用性；避免横向滚动成为主路径。</li>
+          <li>可点击热区建议 ≥ 40px；+/− 按钮足够大，避免误触相邻输入。</li>
+          <li>数字输入调用手机数字键盘（<code>inputmode="numeric"</code> 或等效），并在逻辑层强制整数。</li>
+          <li>列表在窄屏下可采用「卡片式每人一行多行字段」，若四列表格过于拥挤；
+            <strong>信息字段顺序仍保持：姓名 → 买入 → 剩余 → 结果</strong>。</li>
+        </ul>
+
+        <h3>5.5 底栏自适应</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>场景</th>
+              <th>断点建议</th>
+              <th>展示</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>电脑 / 宽屏</td>
+              <td>宽度 ≥ 480px</td>
+              <td>全部操作可见：添加、校验、排序、分享、清空人员、清空记分（清空可分组）</td>
+            </tr>
+            <tr>
+              <td>手机 / 窄屏</td>
+              <td>宽度 &lt; 480px</td>
+              <td>
+                仅展示：<strong>添加</strong>、<strong>校验</strong>、<strong>更多</strong>；<br />
+                「更多」内：排序、分享、清空人员、清空记分
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        <ul>
+          <li>「更多」可用底部 action sheet 或简易弹出菜单，不必引入复杂导航。</li>
+          <li>主路径保留「添加」（高频）与「校验」（收局关键）。</li>
+        </ul>
+
+        <h3>5.6 关键交互文案（建议）</h3>
+        <ul>
+          <li>清空人员：「确定清空全部人员？此操作不可恢复。」→ 取消 / 确定清空</li>
+          <li>清空记分：「确定清空全部记分？将保留人员，买入与剩余均重置为一手（结果归 0）。此操作不可恢复。」→ 取消 / 确定清空</li>
+          <li>校验通过：「校验通过，所有结果合计为 0。」</li>
+          <li>校验失败（&gt;0）：「账不平，结果合计为 {n}。剩余合计比买入多（多出来的筹码）。」</li>
+          <li>校验失败（&lt;0）：「账不平，结果合计为 {n}。剩余合计比买入少（少了的筹码）。」</li>
+          <li>分享失败：「生成图片失败，请重试。」</li>
+        </ul>
+      </section>
+
+      <!-- 6 -->
+      <section id="data">
+        <h2><span class="num">6</span>数据模型</h2>
+        <p>建议的逻辑结构（实现可用 TypeScript interface / 纯 JSON）：</p>
+        <div class="formula" style="white-space: pre; line-height: 1.45;">
+{
+  "version": 1,                 // 存储结构版本，便于以后迁移
+  "unitPerHand": 2000,          // 一手对应筹码数量（正整数，默认 2000）
+  "sortMode": "manual",         // manual | result_desc | result_asc
+  "players": [
+    {
+      "id": "uuid-or-nanoid",   // 稳定主键
+      "name": "张三",
+      "buyIn": 2000,            // 买入（整数，可负）
+      "remain": 2000,           // 剩余（整数，可负）
+      "order": 0                // 添加顺序，用于恢复原始排序
+    }
+  ],
+  "updatedAt": "2026-07-27T12:00:00.000Z"
+}
+        </div>
+        <ul>
+          <li>UI 文案统一为「买入」；内部字段推荐 <code>buyIn</code>（勿再命名/展示为「总数」）。</li>
+          <li><code>result</code> 不作为权威存储字段，展示时计算：<code>remain - buyIn</code>。</li>
+          <li>新人员默认：<code>buyIn = unitPerHand</code>，<code>remain = unitPerHand</code>（结果为 0）。</li>
+          <li>清空记分：每人 <code>buyIn = remain = unitPerHand</code>，姓名与 id 保留。</li>
+          <li>添加人员：数组末尾追加；列表渲染按 <code>sortMode</code> 排序。</li>
+          <li><code>version</code> 用于日后字段变更时的兼容迁移。</li>
+          <li>初版仅维护<strong>当前一场</strong>数据，不设 sessions 数组。</li>
+        </ul>
+      </section>
+
+      <!-- 7 -->
+      <section id="persist">
+        <h2><span class="num">7</span>本地持久化方案</h2>
+        <div class="callout ok">
+          <div class="title">结论</div>
+          <p>
+            使用浏览器 <strong>localStorage</strong>（键名建议 <code>texas_score_v1</code>）持久化完整状态。
+            用户所说的「浏览器 cache」在本方案中落实为<strong>本地 Web 存储</strong>，
+            而非 HTTP Cache：关闭标签页 / 浏览器后再次进入同源页面，数据仍可恢复。
+          </p>
+        </div>
+
+        <h3>7.1 读写时机</h3>
+        <ul>
+          <li><strong>读</strong>：应用启动时加载；解析失败则回退到默认空状态，并避免写坏数据。</li>
+          <li><strong>写</strong>：任何状态变更后防抖写入（如 100–300ms），以及页面 <code>visibilitychange</code> / <code>pagehide</code> 时立即 flush，降低杀进程丢数风险。</li>
+        </ul>
+
+        <h3>7.2 容量与限制</h3>
+        <ul>
+          <li>单场人员通常 &lt; 20，数据量极小，localStorage 足够。</li>
+          <li>无跨设备同步；清除站点数据会导致丢失——可在界面用一行小字提示「数据仅保存在本机浏览器」。</li>
+          <li>隐私模式 / 部分 WebView 可能限制存储：写入失败时 Toast 提示，避免静默丢数。</li>
+        </ul>
+
+        <h3>7.3 明确不做</h3>
+        <ul>
+          <li>不做云端账号与同步</li>
+          <li>不做多设备协作</li>
+          <li>不做服务端备份</li>
+        </ul>
+      </section>
+
+      <!-- 8 -->
+      <section id="share">
+        <h2><span class="num">8</span>分享结果图片</h2>
+        <h3>8.1 目标</h3>
+        <p>
+          用户点击「分享结果」后，生成一张汇总图片，便于保存到相册或发到微信群等 IM。
+        </p>
+
+        <h3>8.2 图片内容（已定）</h3>
+        <ul>
+          <li>标题：固定「德州记分」（<strong>不做局名/自定义标题</strong>）</li>
+          <li>时间：生成时刻的<strong>本地时间</strong></li>
+          <li>元信息：一手、总人数、总筹码、结果合计（并标注是否账平）</li>
+          <li>表格：姓名 | 买入 | 剩余 | 结果（结果带颜色或 +/- 符号）</li>
+          <li>页脚：小字「仅供朋友局记账参考」</li>
+        </ul>
+
+        <h3>8.3 交互流程</h3>
+        <ol>
+          <li>点击「分享结果」（窄屏位于「更多」内）</li>
+          <li>将隐藏的「分享卡片」DOM 渲染为图片（或 Canvas 绘制）</li>
+          <li>优先尝试：
+            <ul>
+              <li>支持 <code>Web Share API</code> 且可分享文件 → 调起系统分享；</li>
+              <li>否则 → 预览图片 + 「长按保存 / 下载」。</li>
+            </ul>
+          </li>
+        </ol>
+
+        <h3>8.4 实现备注</h3>
+        <ul>
+          <li>可选库：html-to-image / html2canvas 等；需注意手机端字体与跨域图片问题（初版尽量纯色、系统字体，降低踩坑）。</li>
+          <li>分享图使用独立布局（固定宽度，如 750px 逻辑宽），不直接截取可能横向拥挤的操作台 UI，保证出图清晰。</li>
+        </ul>
+      </section>
+
+      <!-- 9 -->
+      <section id="tech">
+        <h2><span class="num">9</span>技术建议</h2>
+        <div class="callout ok">
+          <div class="title">已定技术栈</div>
+          <p>
+            <strong>Vite + React + TypeScript</strong>。
+            构建产物为纯静态文件，可部署至任意静态托管；无后端。
+          </p>
+        </div>
+        <ul>
+          <li><strong>样式</strong>：移动优先 CSS；可用轻量方案（纯 CSS / Tailwind），保持依赖简单。</li>
+          <li><strong>状态</strong>：单页状态集中管理；每次变更驱动重算汇总与持久化；展示列表由 <code>players + sortMode</code> 派生。</li>
+          <li><strong>测试</strong>：核心纯函数单测——结果计算、校验多/少码文案、排序、一手变更不影响已有买入、新人员默认（买入=剩余=一手）、清空记分重置、整数规范化、排序视图下添加仍追加到数据末尾。</li>
+          <li><strong>无后端</strong>：无 API、无数据库。</li>
+        </ul>
+      </section>
+
+      <!-- 10 -->
+      <section id="nfr">
+        <h2><span class="num">10</span>非功能要求</h2>
+        <ul>
+          <li><strong>性能</strong>：人员 &lt; 30 时交互瞬时响应；持久化防抖，避免频繁同步写。</li>
+          <li><strong>兼容</strong>：iOS Safari、Android Chrome 近两个大版本；微信内置浏览器可打开并记分（分享能力可能降级为下载/长按保存）。</li>
+          <li><strong>可访问基础</strong>：按钮有明确文案；错误有可见反馈。</li>
+          <li><strong>安全隐私</strong>：数据不出本机；无第三方统计 SDK（初版）。</li>
+        </ul>
+      </section>
+
+      <!-- 11 -->
+      <section id="oos">
+        <h2><span class="num">11</span>明确不做（初版）</h2>
+        <table>
+          <thead>
+            <tr><th>项</th><th>原因</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>云端保存 / 账号体系</td><td>需求明确本地即可</td></tr>
+            <tr><td>撤销（Undo）栈</td><td>已确认不做；危险操作仅二次确认</td></tr>
+            <tr><td>历史多场次管理</td><td>控制范围，后续可迭代</td></tr>
+            <tr>
+              <td><strong>转账方案 / 最优结算路径</strong></td>
+              <td>审查明确砍掉；初版不实现、不预留入口、不写半成品文案</td>
+            </tr>
+            <tr><td>买入明细流水</td><td>买入聚合录入已够用</td></tr>
+            <tr><td>剩余的按一手 +/−</td><td>初版仅买入需要步进</td></tr>
+            <tr><td>PWA 安装 / 暗色强制</td><td>可后续增强</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <!-- 12 -->
+      <section id="accept">
+        <h2><span class="num">12</span>验收标准（初版）</h2>
+        <ul class="checklist">
+          <li>技术栈为 Vite + React + TypeScript 静态前端。</li>
+          <li>手机竖屏下可完成完整记分流程，主操作无需横屏。</li>
+          <li>一手默认 2000；可改；修改后仅影响之后的买入 +/−、新人员默认、清空记分重置。</li>
+          <li>添加人员：数据末尾追加；默认买入=剩余=当前一手（结果 0）；按 sortMode 展示；focus 姓名。</li>
+          <li>可修改姓名；删除单人、清空人员、清空记分均有二次确认。</li>
+          <li>清空记分：保留人员，买入与剩余均重置为当前一手。</li>
+          <li>买入可手输与 +/−；剩余可手输；结果只读且 = 剩余 − 买入。</li>
+          <li>买入/剩余/结果均支持负数；输入强制整数，空串失焦归 0。</li>
+          <li>结果 ≥0 绿色，&lt;0 红色。</li>
+          <li>总人数、总筹码（Σ买入）正确；校验区分账平 / 多码 / 少码。</li>
+          <li>可按结果排序（含恢复原始顺序）；排序视图下新增仍追加到数据末尾。</li>
+          <li>窄屏底栏为「添加 / 校验 / 更多」；宽屏可展示全部操作。</li>
+          <li>关闭页面再打开，一手配置与人员数据仍在。</li>
+          <li>分享图标题固定「德州记分」+ 本地时间，无局名；可预览/下载或系统分享。</li>
+          <li>无云端依赖；无转账结算功能。</li>
+        </ul>
+      </section>
+
+      <!-- 13 -->
+      <section id="open">
+        <h2><span class="num">13</span>已拍板项与残余待定</h2>
+        <h3>13.1 二轮审查已拍板</h3>
+        <ul>
+          <li>新建人员：买入 = 剩余 = 当前一手，初始结果 = 0。</li>
+          <li>删除单人：必须二次确认。</li>
+          <li>排序视图下添加：数据末尾追加，展示按 <code>sortMode</code>。</li>
+          <li>技术栈：<strong>Vite + React + TypeScript</strong>。</li>
+          <li>一手默认值：<strong>2000</strong>。</li>
+          <li>分享图：固定「德州记分」+ 本地时间；<strong>不做局名</strong>。</li>
+        </ul>
+        <h3>13.2 实现期可微调（不影响开工）</h3>
+        <ol>
+          <li>
+            <strong>排序控件形态</strong>：三态切换（原始 / 降序 / 升序）的具体 UI（按钮轮换 vs 菜单选择）。
+          </li>
+          <li>
+            <strong>样式方案</strong>：纯 CSS 或 Tailwind 等，实现时选定即可。
+          </li>
+        </ol>
+
+        <div class="callout warn">
+          <div class="title">下一步</div>
+          <p>
+            本文档 <strong>V1.2</strong> 已合入二轮审查结论。你确认无进一步修改后，再输出实现计划（任务拆解、目录结构、里程碑），
+            然后进入编码。在你明确批准前，不开始写业务代码。
+          </p>
+        </div>
+      </section>
+
+      <!-- 14 -->
+      <section id="changelog">
+        <h2><span class="num">14</span>修订记录</h2>
+        <table>
+          <thead>
+            <tr>
+              <th style="width:18%">版本</th>
+              <th style="width:22%">日期</th>
+              <th>说明</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>V1.0</td>
+              <td>2026-07-27</td>
+              <td>初版方案，待审查。</td>
+            </tr>
+            <tr>
+              <td>V1.1</td>
+              <td>2026-07-27</td>
+              <td>
+                按一轮审查结论更新（全部采纳）：
+                <ul class="changelog" style="margin:6px 0 0;padding-left:1.2em;">
+                  <li>新人员默认：买入 = 当前一手，剩余 = 0（后被 V1.2 修正）</li>
+                  <li>校验失败文案区分多码 / 少码</li>
+                  <li>强制整数输入；编辑中可空，失焦空串 → 0</li>
+                  <li>添加人员后 focus 姓名</li>
+                  <li>底栏宽屏全显 / 窄屏「添加·校验·更多」</li>
+                  <li>明确不做转账方案</li>
+                  <li>清空拆为：清空人员 / 清空记分</li>
+                  <li>「总数」统一更名为「买入」；数据字段推荐 buyIn</li>
+                </ul>
+              </td>
+            </tr>
+            <tr>
+              <td>V1.2</td>
+              <td>2026-07-27</td>
+              <td>
+                按二轮审查结论更新（全部采纳）：
+                <ul class="changelog" style="margin:6px 0 0;padding-left:1.2em;">
+                  <li>新人员默认：买入 = 剩余 = 当前一手，初始结果 = 0</li>
+                  <li>清空记分：买入与剩余均重置为当前一手（与新建一致）</li>
+                  <li>删除单人必须二次确认</li>
+                  <li>排序视图下添加：数据末尾追加，展示跟 sortMode</li>
+                  <li>技术栈拍板：Vite + React + TypeScript</li>
+                  <li>一手默认 2000</li>
+                  <li>分享图：固定「德州记分」+ 本地时间，不做局名</li>
+                </ul>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <footer>
+        德州扑克记分工具 · docs/00-初版方案.html · V1.2 · 2026-07-27 · 二轮审查已合入
+      </footer>
+    </main>
+  </div>
+</body>
+</html>
