@@ -4,6 +4,8 @@ import {
   findCellByCode,
   formatEquityPct,
   getCell,
+  tierToBg,
+  TIER_COLORS,
 } from './preflop'
 
 describe('preflop matrix smoke', () => {
@@ -58,6 +60,15 @@ describe('preflop matrix smoke', () => {
   it('formats percent with one decimal', () => {
     expect(formatEquityPct(0.342)).toBe('约 34.2%')
     expect(formatEquityPct(0.5)).toBe('约 50.0%')
+  })
+
+  it('uses discrete tier colors (not continuous gradient)', () => {
+    expect(tierToBg('S')).toBe(TIER_COLORS.S.bg)
+    expect(tierToBg('A')).toBe(TIER_COLORS.A.bg)
+    expect(tierToBg('B')).toBe(TIER_COLORS.B.bg)
+    expect(tierToBg('C')).toBe(TIER_COLORS.C.bg)
+    expect(tierToBg('D')).toBe(TIER_COLORS.D.bg)
+    expect(new Set(Object.values(TIER_COLORS).map((c) => c.bg)).size).toBe(5)
   })
 
   it('matrix corner codes', () => {

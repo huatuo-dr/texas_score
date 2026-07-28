@@ -1,22 +1,19 @@
-import { useMemo, useState } from 'react'
+import { useState } from 'react'
 import {
-  equityToColor,
-  equityToTextColor,
   formatEquityPct,
   getCell,
   kindLabel,
   PREFLOP_MATRIX,
   PREFLOP_RANKS,
+  tierToBg,
+  tierToFg,
+  TIER_ORDER,
+  TIER_COLORS,
 } from '../domain/preflop'
 
 export function PreflopPanel() {
   const [selected, setSelected] = useState({ row: 0, col: 0 })
   const cell = getCell(selected.row, selected.col)
-
-  const legend = useMemo(
-    () => [0.08, 0.16, 0.24, 0.32, 0.4, 0.5],
-    [],
-  )
 
   return (
     <div
@@ -35,18 +32,27 @@ export function PreflopPanel() {
       </header>
 
       <section className="ref-card" aria-label="图例">
-        <div className="preflop-legend">
-          <span className="preflop-legend-label">弱</span>
-          <div className="preflop-legend-bar" aria-hidden="true">
-            {legend.map((e) => (
-              <span key={e} style={{ background: equityToColor(e) }} />
-            ))}
-          </div>
-          <span className="preflop-legend-label">强</span>
+        <div className="preflop-legend-tiles" aria-hidden="true">
+          {TIER_ORDER.map((tier) => (
+            <div key={tier} className="preflop-legend-tile">
+              <span
+                className="preflop-legend-swatch"
+                style={{
+                  background: TIER_COLORS[tier].bg,
+                  color: TIER_COLORS[tier].fg,
+                }}
+              >
+                {tier}
+              </span>
+              <span className="preflop-legend-name">
+                {TIER_COLORS[tier].label.replace(/^[SABCD]\s*/, '')}
+              </span>
+            </div>
+          ))}
         </div>
         <p className="ref-note">
-          颜色越暖，参考 equity 越高。上三角同花 (s)，下三角不同花
-          (o)，对角线对子。数据：
+          颜色按 equity 分位档位（S→D）离散着色，便于区分强弱。上三角同花
+          (s)，下三角不同花 (o)，对角线对子。数据：
           {PREFLOP_MATRIX.meta.source} · v{PREFLOP_MATRIX.meta.version} ·
           trials={PREFLOP_MATRIX.meta.trials}
         </p>
@@ -83,8 +89,8 @@ export function PreflopPanel() {
                         c.kind === 'pair' ? ' is-pair' : ''
                       }`}
                       style={{
-                        background: equityToColor(c.equity),
-                        color: equityToTextColor(c.equity),
+                        background: tierToBg(c.tier),
+                        color: tierToFg(c.tier),
                       }}
                       aria-label={`${c.code}，${kindLabel(c.kind)}，${formatEquityPct(c.equity)}，档位 ${c.tier}`}
                       aria-selected={active}

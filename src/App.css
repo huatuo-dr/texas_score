@@ -123,29 +123,35 @@ input {
 }
 
 /* —— 起手牌胜率热力图 —— */
-.preflop-legend {
+/* 离散分档图例（红/橙/黄/绿/白，参考常见开池色块图） */
+.preflop-legend-tiles {
   display: flex;
-  align-items: center;
+  flex-wrap: wrap;
   gap: 8px;
 }
 
-.preflop-legend-label {
-  font-size: 0.75rem;
-  color: var(--muted);
-  flex-shrink: 0;
-}
-
-.preflop-legend-bar {
-  flex: 1;
+.preflop-legend-tile {
   display: flex;
-  height: 12px;
-  border-radius: 6px;
-  overflow: hidden;
-  border: 1px solid var(--border);
+  align-items: center;
+  gap: 6px;
 }
 
-.preflop-legend-bar span {
-  flex: 1;
+.preflop-legend-swatch {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2rem;
+  height: 1.6rem;
+  padding: 0 8px;
+  border-radius: 4px;
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  font-weight: 800;
+  font-size: 0.8rem;
+}
+
+.preflop-legend-name {
+  font-size: 0.78rem;
+  color: var(--muted);
 }
 
 .preflop-matrix-wrap {
@@ -178,20 +184,21 @@ input {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.62rem;
+  font-size: 0.72rem;
   font-weight: 700;
   color: var(--muted);
-  min-height: 18px;
+  min-height: 20px;
 }
 
 .preflop-cell {
   aspect-ratio: 1;
   min-width: 0;
   min-height: 0;
-  border: 1px solid rgba(0, 0, 0, 0.25);
-  border-radius: 3px;
+  border: 1px solid rgba(0, 0, 0, 0.18);
+  border-radius: 2px;
   padding: 0;
-  font-size: clamp(0.45rem, 2.1vw, 0.62rem);
+  /* 略放大格子内字母，窄屏仍用 clamp 防止溢出 */
+  font-size: clamp(0.58rem, 2.8vw, 0.8rem);
   font-weight: 700;
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   line-height: 1;
@@ -203,14 +210,15 @@ input {
 }
 
 .preflop-cell.is-pair {
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.35);
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.12);
 }
 
 .preflop-cell.is-selected {
-  outline: 2px solid #f8fafc;
-  outline-offset: 0;
+  outline: 2px solid #38bdf8;
+  outline-offset: -1px;
   z-index: 1;
   position: relative;
+  box-shadow: 0 0 0 1px #0f1419;
 }
 
 .preflop-detail-grid {
