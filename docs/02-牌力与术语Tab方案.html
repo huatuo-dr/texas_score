@@ -1,0 +1,843 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>德州记分 · 记分 / 牌力 / 术语 Tab 需求方案</title>
+  <style>
+    :root {
+      --bg: #0f1419;
+      --surface: #1a2332;
+      --surface-2: #243044;
+      --border: #2d3a4f;
+      --text: #e7ecf3;
+      --muted: #9aa8bc;
+      --accent: #3b82f6;
+      --accent-soft: rgba(59, 130, 246, 0.15);
+      --green: #22c55e;
+      --green-soft: rgba(34, 197, 94, 0.12);
+      --amber: #f59e0b;
+      --amber-soft: rgba(245, 158, 11, 0.12);
+      --radius: 12px;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      --sans: "PingFang SC", "Noto Sans SC", "Microsoft YaHei", system-ui, sans-serif;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      font-family: var(--sans);
+      background: radial-gradient(1000px 500px at 0% -10%, #1e3a5f 0%, transparent 50%), var(--bg);
+      color: var(--text);
+      line-height: 1.7;
+      font-size: 16px;
+    }
+    .layout {
+      display: grid;
+      grid-template-columns: 220px minmax(0, 860px);
+      gap: 28px;
+      max-width: 1140px;
+      margin: 0 auto;
+      padding: 28px 20px 72px;
+    }
+    nav {
+      position: sticky;
+      top: 20px;
+      align-self: start;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 14px 10px;
+      max-height: calc(100vh - 40px);
+      overflow: auto;
+    }
+    nav .t {
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+      padding: 4px 10px 10px;
+      font-weight: 600;
+    }
+    nav a {
+      display: block;
+      color: var(--muted);
+      text-decoration: none;
+      padding: 7px 10px;
+      border-radius: 8px;
+      font-size: 13px;
+    }
+    nav a:hover { background: var(--surface-2); color: var(--text); }
+
+    header.doc {
+      background: linear-gradient(135deg, var(--surface), #1a2838);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 26px;
+      margin-bottom: 20px;
+    }
+    .badges { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+    .badge {
+      font-size: 12px;
+      font-weight: 600;
+      padding: 3px 10px;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      color: #93c5fd;
+      border: 1px solid rgba(59, 130, 246, 0.35);
+    }
+    .badge.ok {
+      background: var(--green-soft);
+      color: #86efac;
+      border-color: rgba(34, 197, 94, 0.35);
+    }
+    header h1 { margin: 0 0 8px; font-size: 26px; line-height: 1.3; }
+    header .sub { margin: 0; color: var(--muted); font-size: 15px; }
+
+    section {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 22px 24px;
+      margin-bottom: 16px;
+    }
+    section h2 {
+      margin: 0 0 14px;
+      font-size: 19px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    section h2 .n {
+      width: 28px;
+      height: 28px;
+      border-radius: 8px;
+      background: var(--accent-soft);
+      color: #93c5fd;
+      font-size: 13px;
+      font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+    h3 { margin: 18px 0 8px; font-size: 15px; color: #dbe7f7; }
+    p, li { color: #d5deea; }
+    ul, ol { padding-left: 1.25em; }
+    li { margin: 5px 0; }
+    strong { color: #fff; }
+    code {
+      font-family: var(--mono);
+      font-size: 0.88em;
+      background: rgba(0,0,0,.35);
+      border: 1px solid var(--border);
+      padding: 1px 6px;
+      border-radius: 6px;
+      color: #bfdbfe;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+      margin: 10px 0 14px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+    th, td {
+      border-bottom: 1px solid var(--border);
+      padding: 9px 11px;
+      text-align: left;
+      vertical-align: top;
+    }
+    th {
+      background: rgba(0,0,0,.28);
+      color: var(--muted);
+      font-size: 12px;
+    }
+    tr:last-child td { border-bottom: none; }
+
+    .callout {
+      border-radius: 10px;
+      padding: 12px 14px;
+      margin: 12px 0;
+      border: 1px solid var(--border);
+      background: rgba(0,0,0,.18);
+    }
+    .callout.info { border-color: rgba(59,130,246,.4); background: var(--accent-soft); }
+    .callout.warn { border-color: rgba(245,158,11,.4); background: var(--amber-soft); }
+    .callout.ok { border-color: rgba(34,197,94,.4); background: var(--green-soft); }
+    .callout .tt { font-weight: 700; font-size: 13px; margin-bottom: 6px; }
+    .callout.info .tt { color: #93c5fd; }
+    .callout.warn .tt { color: #fcd34d; }
+    .callout.ok .tt { color: #86efac; }
+
+    .wire {
+      background: #0b1018;
+      border: 1px dashed #3a4a63;
+      border-radius: 14px;
+      padding: 14px;
+      max-width: 360px;
+      margin: 12px auto;
+      font-size: 12px;
+    }
+    .wire .bar {
+      text-align: center;
+      color: var(--muted);
+      font-size: 11px;
+      margin-bottom: 8px;
+    }
+    .wire .box {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px;
+      margin-bottom: 8px;
+    }
+    .tabs {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 4px;
+      background: #0b1018;
+      border-radius: 10px;
+      padding: 4px;
+    }
+    .tabs span {
+      text-align: center;
+      padding: 8px 4px;
+      border-radius: 8px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .tabs span.on {
+      background: var(--accent);
+      color: #fff;
+    }
+
+    .rank-row {
+      display: flex;
+      gap: 8px;
+      align-items: flex-start;
+      padding: 8px 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 12px;
+    }
+    .rank-row:last-child { border-bottom: none; }
+    .rank-n {
+      width: 22px;
+      height: 22px;
+      border-radius: 6px;
+      background: var(--accent-soft);
+      color: #93c5fd;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+    .rank-n.top { background: rgba(245,158,11,.2); color: #fcd34d; }
+
+    footer {
+      text-align: center;
+      color: var(--muted);
+      font-size: 13px;
+      padding: 16px 0 8px;
+    }
+
+    @media (max-width: 820px) {
+      .layout { grid-template-columns: 1fr; padding: 14px 12px 56px; }
+      nav { position: static; display: flex; flex-wrap: wrap; gap: 4px; }
+      nav .t { width: 100%; }
+      section { padding: 16px; }
+      header.doc { padding: 18px 16px; }
+      header h1 { font-size: 22px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <nav>
+      <div class="t">目录</div>
+      <a href="#s1">1. 背景与目标</a>
+      <a href="#s2">2. 范围与非目标</a>
+      <a href="#s3">3. 信息架构与布局</a>
+      <a href="#s4">4. Tab「记分」</a>
+      <a href="#s5">5. Tab「牌力」</a>
+      <a href="#s6">6. Tab「术语」</a>
+      <a href="#s7">7. 全局交互与导航</a>
+      <a href="#s8">8. 视觉与内容规范</a>
+      <a href="#s9">9. 数据与实现建议</a>
+      <a href="#s10">10. 验收标准</a>
+      <a href="#s11">11. 分期与已拍板</a>
+      <a href="#s12">12. 修订记录</a>
+    </nav>
+
+    <main>
+      <header class="doc">
+        <div class="badges">
+          <span class="badge">文档 · 02</span>
+          <span class="badge ok">状态 · 审查已合入</span>
+          <span class="badge">版本 · v0.2</span>
+        </div>
+        <h1>记分 / 牌力 / 术语<br />三 Tab 需求方案</h1>
+        <p class="sub">
+          在现有「德州记分」工具上扩展查阅能力：保留完整记分流程，
+          新增「牌力」排序说明与「术语」科普，三者以<strong>顶部全局 Tab</strong>切换。
+          纯前端静态内容，无云端、无后端。
+        </p>
+      </header>
+
+      <div class="callout ok" style="margin-bottom:16px;">
+        <div class="tt">v0.2 审查合入摘要</div>
+        <p style="margin:0;color:#d5deea;font-size:14px;">
+          布局分区写死（Tab / 一手·汇总 / 底栏与 padding）；
+          牌力页头措辞修正；花色无大小升为 P0；
+          Wheel 钉死 5-high；切 Tab 前 blur 输入；
+          术语词条微调；牌力 example 字段规范；进 Tab 重置滚动；
+          aria 约定；部署缓存确认。
+        </p>
+      </div>
+
+      <section id="s1">
+        <h2><span class="n">1</span>背景与目标</h2>
+        <h3>1.1 背景</h3>
+        <p>
+          当前应用聚焦家庭局/朋友局<strong>记分结算</strong>（买入、剩余、结果、校验、分享）。
+          现场常出现：牌型谁大谁小说不清、术语听不懂（盲注、位置、翻牌等）。
+          希望在同一应用内提供<strong>轻量查阅</strong>，不必另开网页或搜图。
+        </p>
+        <h3>1.2 目标</h3>
+        <ul>
+          <li>提供稳定入口，用 <strong>三个 Tab</strong> 组织：<strong>记分</strong>、<strong>牌力</strong>、<strong>术语</strong>。</li>
+          <li>「牌力」按从大到小列出标准德州牌型，并<strong>明确点数大小关系</strong>（含 A-5 顺与 10–A 高牌区间的说明）。</li>
+          <li>「术语」覆盖操作、位置、发牌相关常用词，中文为主、可附英文缩写。</li>
+          <li>记分能力与数据行为<strong>不回退</strong>：切换 Tab 不丢记分状态；持久化规则不变。</li>
+        </ul>
+        <h3>1.3 成功标准（产品）</h3>
+        <ul>
+          <li>新手能在 10 秒内找到「同花和顺子谁大」。</li>
+          <li>能说清「A 什么时候最大、什么时候可以当 1」。</li>
+          <li>记分员切去查牌力/术语后，回到记分页数据仍在。</li>
+        </ul>
+      </section>
+
+      <section id="s2">
+        <h2><span class="n">2</span>范围与非目标</h2>
+        <h3>2.1 本版范围内（In Scope / P0）</h3>
+        <ul>
+          <li>全局三 Tab 导航与<strong>写死的</strong>壳层布局（见 §3）。</li>
+          <li>记分 Tab：现有功能整体迁入（买入/剩余/结果/校验/排序/分享/清空等）。</li>
+          <li>牌力 Tab：10 级牌型列表 + 点数大小 + 特殊顺子 + <strong>花色无大小</strong>。</li>
+          <li>术语 Tab：分组词条（操作 / 位置 / 发牌与街道），只读列表。</li>
+          <li>竖屏优先；内容可滚动；无账号、无服务端。</li>
+          <li>切 Tab 时记分输入 commit；各查阅 Tab 进入时滚动置顶。</li>
+        </ul>
+        <h3>2.2 本版不做（Out of Scope）</h3>
+        <ul>
+          <li>牌力计算器 / 胜率模拟 / 起手牌矩阵训练。</li>
+          <li>视频教学、长文攻略、多语言完整 i18n。</li>
+          <li>术语搜索、收藏、用户自定义词条（P1）。</li>
+          <li>云端同步词条；与记分结果联动判定牌型。</li>
+          <li>改动部署架构（仍 dist + Nginx；index.html no-cache 见部署方案）。</li>
+          <li>「现金桌 / 锦标赛 / 抽水」等场外词（默认不做；若加单独「场外」组 ≤3 条）。</li>
+          <li>Straddle / 枪口强制加注等低频词（P0 不进；可选 P1）。</li>
+          <li>边池<strong>计算</strong>（仅允许名词解释）。</li>
+        </ul>
+      </section>
+
+      <section id="s3">
+        <h2><span class="n">3</span>信息架构与布局（写死）</h2>
+
+        <h3>3.1 页面壳层（已拍板）</h3>
+        <div class="wire" aria-hidden="true">
+          <div class="bar">─ 全局壳 ─</div>
+          <div class="box">
+            <div class="tabs">
+              <span class="on">记分</span>
+              <span>牌力</span>
+              <span>术语</span>
+            </div>
+            <div style="font-size:11px;color:var(--muted);margin-top:6px;text-align:center;">
+              全局 Tab · 始终在最顶 · 不属于记分内容
+            </div>
+          </div>
+          <div class="box" style="min-height:100px;">
+            <div style="color:var(--muted);font-size:11px;margin-bottom:6px;">当前 Tab 内容区</div>
+            <div style="font-size:12px;">
+              <strong>记分：</strong>标题+一手 / 汇总 / 列表 / 底栏<br />
+              <strong>牌力·术语：</strong>页头 + 滚动正文（无底栏）
+            </div>
+          </div>
+        </div>
+
+<pre style="background:#0b1018;border:1px solid var(--border);border-radius:10px;padding:12px 14px;font-size:13px;color:#bfdbfe;overflow-x:auto;">
+┌─────────────────────────────────┐
+│  Tab：记分 | 牌力 | 术语         │  ← 全局壳，始终在最顶
+├─────────────────────────────────┤
+│  【记分】自有：标题+一手 / 汇总  │
+│         / 列表 / 固定底栏        │
+│  【牌力·术语】自有：页头+滚动    │
+│         （无记分底栏、无底 padding）│
+└─────────────────────────────────┘</pre>
+
+        <h3>3.2 各区域有无对照（已拍板）</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>区域</th>
+              <th>记分</th>
+              <th>牌力 / 术语</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>全局 Tab</strong>（记分 | 牌力 | 术语）</td>
+              <td>有</td>
+              <td>有</td>
+            </tr>
+            <tr>
+              <td>「德州记分」标题 + <strong>一手</strong>配置 + <strong>汇总</strong> + 人员列表</td>
+              <td>有</td>
+              <td><strong>无</strong></td>
+            </tr>
+            <tr>
+              <td>记分<strong>底栏</strong>（添加 / 校验 / 更多）</td>
+              <td>有</td>
+              <td><strong>无</strong>；并<strong>取消</strong>为底栏预留的 <code>padding-bottom</code></td>
+            </tr>
+            <tr>
+              <td>牌力/术语页头（说明文案）</td>
+              <td>无</td>
+              <td>有</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="callout warn">
+          <div class="tt">布局硬性约定</div>
+          <ul style="margin:0;padding-left:1.2em;">
+            <li><strong>全局 Tab 在最上</strong>；「一手」只在记分内容区，不与全局 Tab 抢同一行。</li>
+            <li>牌力/术语<strong>不显示</strong>「德州记分 + 一手」大顶栏，避免像半截记分页。</li>
+            <li>离开记分 Tab 时隐藏底栏，且内容区<strong>不得</strong>仍保留为固定底栏预留的大块底部空白。</li>
+          </ul>
+        </div>
+
+        <h3>3.3 默认 Tab</h3>
+        <p>首次进入与刷新后默认 <strong>记分</strong>。P0 不记忆上次 Tab；P1 可做 session 记忆。</p>
+
+        <h3>3.4 Tab 职责</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Tab</th>
+              <th>定位</th>
+              <th>是否改写记分数据</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>记分</strong></td>
+              <td>主工作台（可编辑、可持久化）</td>
+              <td>是</td>
+            </tr>
+            <tr>
+              <td><strong>牌力</strong></td>
+              <td>规则查阅（静态）</td>
+              <td>否</td>
+            </tr>
+            <tr>
+              <td><strong>术语</strong></td>
+              <td>科普查阅（静态）</td>
+              <td>否</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section id="s4">
+        <h2><span class="n">4</span>Tab「记分」</h2>
+        <p>行为与现网一致，整体作为「记分」Tab 的内容区挂载，不删减已验收能力。</p>
+        <ul>
+          <li>一手配置；人员增删改；买入 ± / 手输；剩余手输；结果只读与红绿。</li>
+          <li>校验、总人数/总筹码/结果合计、排序、清空人员/记分、分享图、本地持久化。</li>
+          <li>底栏自适应（添加 / 校验 / 更多）仅在记分 Tab 展示。</li>
+        </ul>
+        <div class="callout warn">
+          <div class="tt">切换保护（P0 必做）</div>
+          <ul style="margin:0;padding-left:1.2em;">
+            <li>从记分切到牌力/术语再切回：列表数据、一手、排序模式均保持；不触发清空或错误地重新 load 默认空状态。</li>
+            <li><strong>离开记分 Tab 前</strong>：对当前焦点输入控件执行 <code>blur</code>（或等价 commit），使 <code>IntegerField</code> 等中间 draft 落库，避免 draft 与 store 短暂不一致。</li>
+            <li>切回记分时不必强制滚动置顶（保留用户上次看列表的位置更友好）；若实现成本高，P0 可接受整页内容区统一行为，但<strong>数据不得丢</strong>。</li>
+          </ul>
+        </div>
+      </section>
+
+      <section id="s5">
+        <h2><span class="n">5</span>Tab「牌力」</h2>
+        <h3>5.1 页面结构（自上而下）</h3>
+        <ol>
+          <li>
+            <strong>页头说明（必做）</strong>——采用以下语义（措辞可微调，不得暗示「不比公共牌」）：
+            <div class="callout ok">
+              <div class="tt">标准页头文案</div>
+              <p style="margin:0;">
+                以下为德州扑克<strong>摊牌</strong>时，标准<strong>五张牌型</strong>由强到弱的顺序
+                （每人用手牌 + 公共牌凑成的<strong>最佳五张</strong>）。本表用于比牌型强弱，非起手牌推荐。
+              </p>
+            </div>
+          </li>
+          <li><strong>点数大小说明卡片（必做，置顶）</strong>：见 5.2。</li>
+          <li><strong>花色无大小（P0 必显）</strong>：见 5.2 末行，可并入点数卡片或紧随其后。</li>
+          <li><strong>特殊顺子说明（必做）</strong>：见 5.3。</li>
+          <li><strong>牌型列表</strong>：从大到小 10 档，见 5.4；每档含 <code>example</code> 示意。</li>
+          <li><strong>比大小短提示 + 页脚小字</strong>：见 5.5。</li>
+        </ol>
+
+        <h3>5.2 点数大小关系（需求硬点）</h3>
+        <div class="callout ok">
+          <div class="tt">必须明确展示</div>
+          <p style="margin:0;">
+            说清 <strong>【9、10、J、Q、K】</strong> 与 <strong>【A、2、3、4、5】</strong> 相关大小，
+            避免「A 到底大还是小」混乱。
+          </p>
+        </div>
+        <table>
+          <thead>
+            <tr><th>主题</th><th>说明要点</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>常规点数序（高→低）</strong></td>
+              <td>
+                <code>A &gt; K &gt; Q &gt; J &gt; 10 &gt; 9 &gt; 8 &gt; 7 &gt; 6 &gt; 5 &gt; 4 &gt; 3 &gt; 2</code>。<br />
+                <strong>K、Q、J、10、9</strong> 属高点侧；<strong>5、4、3、2</strong> 属低点。
+                <strong>单独比高牌时，A 最大</strong>。
+              </td>
+            </tr>
+            <tr>
+              <td><strong>10 / J / Q / K</strong></td>
+              <td>
+                <code>K &gt; Q &gt; J &gt; 10 &gt; 9</code>。
+                均高于 8 及以下；成顺时按连续关系，不是「字母比数字」。
+              </td>
+            </tr>
+            <tr>
+              <td><strong>A 的双重身份</strong></td>
+              <td>
+                <strong>多数情况 A 最大</strong>。<br />
+                <strong>仅在 A-2-3-4-5（轮子）中 A 当作 1</strong>，该顺是最小的顺子。<br />
+                <strong>A 不能两边用</strong>：不存在 Q-K-A-2-3 顺子。
+              </td>
+            </tr>
+            <tr>
+              <td><strong>与 9–K 对照</strong></td>
+              <td>
+                单牌：A 大于 K/Q/J/10/9。<br />
+                顺子：先比顶端（如 10-J-Q-K-A 顶为 A，大于 9-10-J-Q-K 顶为 K）。
+              </td>
+            </tr>
+            <tr>
+              <td><strong>花色无大小（P0 必显）</strong></td>
+              <td>
+                <strong>标准规则下花色无大小</strong>；同牌型比点数与踢脚，<strong>不比花色</strong>
+                （避免「黑桃大于红桃」争执）。
+              </td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3>5.3 两种关键顺子对照</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>顺子</th>
+              <th>牌面示例</th>
+              <th>A 的角色</th>
+              <th>大小关系</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>最大顺（Broadway）</td>
+              <td>10 · J · Q · K · A</td>
+              <td>A 作最大</td>
+              <td>顺子中最大</td>
+            </tr>
+            <tr>
+              <td>最小顺（轮子 / Wheel）</td>
+              <td>A · 2 · 3 · 4 · 5</td>
+              <td>A 作 1</td>
+              <td>
+                顺子中最小；仍大于「仅高牌」。<br />
+                <strong>比两个顺子时：A-2-3-4-5 视为 5-high 顺，小于 6-high 顺（2-3-4-5-6）。</strong>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        <p>对照句：<code>10-J-Q-K-A</code> ＞ <code>9-10-J-Q-K</code> ＞ … ＞ <code>A-2-3-4-5</code>（在「都是顺子」的前提下）。</p>
+
+        <h3>5.4 牌型列表（从大到小，10 档）</h3>
+        <p>配置建议统一字段（P0 示意用<strong>文字花色</strong>即可，如 <code>A♠</code>）：</p>
+<pre style="background:#0b1018;border:1px solid var(--border);border-radius:10px;padding:12px 14px;font-size:12px;color:#bfdbfe;overflow-x:auto;">{
+  rank: 6,
+  nameZh: '顺子',
+  nameEn: 'Straight',
+  example: '9♠ 10♥ J♦ Q♣ K♠',
+  note: '五张连续，花色不全相同'
+}</pre>
+        <table>
+          <thead>
+            <tr>
+              <th>序</th>
+              <th>中文</th>
+              <th>英文</th>
+              <th>说明</th>
+              <th>example 示例</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>1</td><td>皇家同花顺</td><td>Royal Flush</td><td>同花 10-J-Q-K-A</td><td>10♠ J♠ Q♠ K♠ A♠</td></tr>
+            <tr><td>2</td><td>同花顺</td><td>Straight Flush</td><td>同花连续（非皇家）</td><td>5♥ 6♥ 7♥ 8♥ 9♥</td></tr>
+            <tr><td>3</td><td>四条</td><td>Four of a Kind</td><td>四张同点</td><td>9♠ 9♥ 9♦ 9♣ K♠</td></tr>
+            <tr><td>4</td><td>葫芦</td><td>Full House</td><td>三条+一对</td><td>K♠ K♥ K♦ 5♣ 5♠</td></tr>
+            <tr><td>5</td><td>同花</td><td>Flush</td><td>五张同花非顺</td><td>A♦ J♦ 8♦ 6♦ 2♦</td></tr>
+            <tr><td>6</td><td>顺子</td><td>Straight</td><td>连续、花色不全同</td><td>9♠ 10♥ J♦ Q♣ K♠</td></tr>
+            <tr><td>7</td><td>三条</td><td>Three of a Kind</td><td>三张同点</td><td>8♠ 8♥ 8♦ A♣ 3♠</td></tr>
+            <tr><td>8</td><td>两对</td><td>Two Pair</td><td>两个对子</td><td>Q♠ Q♥ 7♦ 7♣ 2♠</td></tr>
+            <tr><td>9</td><td>一对</td><td>One Pair</td><td>一个对子</td><td>J♠ J♥ A♦ 9♣ 4♠</td></tr>
+            <tr><td>10</td><td>高牌</td><td>High Card</td><td>以上皆无</td><td>A♠ K♦ 10♣ 7♥ 3♠</td></tr>
+          </tbody>
+        </table>
+
+        <h3>5.5 同牌型短提示（列表底）</h3>
+        <ul>
+          <li>同牌型先比主牌点数，再比踢脚；</li>
+          <li>同花比点<strong>不比花色</strong>；</li>
+          <li>顺子比最高张；A-2-3-4-5 的「高」按 5 计（5-high），小于 2-3-4-5-6。</li>
+        </ul>
+        <p>页脚：仅供朋友局参考；场地另有约定（如特殊玩法）时以现场规则为准。</p>
+      </section>
+
+      <section id="s6">
+        <h2><span class="n">6</span>Tab「术语」</h2>
+        <h3>6.1 目标</h3>
+        <p>分组解释朋友局高频说法。偏<strong>操作 / 位置 / 发牌与街道</strong>，不展开职业深度策略。验收<strong>不要求</strong>会算边池。</p>
+
+        <h3>A. 操作相关</h3>
+        <table>
+          <thead>
+            <tr><th>术语</th><th>说明要点</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>跟注 Call</td><td>投入与当前需跟金额相同的筹码，不加注。</td></tr>
+            <tr><td>加注 Raise</td><td>在跟注基础上提高下注额。</td></tr>
+            <tr><td>再加注 Re-raise</td><td>在已有加注后再提高。</td></tr>
+            <tr><td>过牌 Check</td><td>当前无人下注时选择不下注并保留行动权。</td></tr>
+            <tr><td>弃牌 Fold</td><td>放弃本手牌，不再争夺底池。</td></tr>
+            <tr><td>全下 All-in</td><td>把剩余筹码一次性押上。</td></tr>
+            <tr><td>盲注 Blind</td><td>发牌前强制注（小盲/大盲）。</td></tr>
+            <tr><td>前注 Ante</td><td>部分规则下每人都先投一点；朋友局不一定有。</td></tr>
+            <tr><td>底池 Pot</td><td>桌面累积、供赢家拿走的筹码。</td></tr>
+            <tr><td>边池 Side pot</td><td>有人全下后形成的额外池。<strong>本版仅名词解释，验收不算边池。</strong></td></tr>
+            <tr><td>摊牌 Showdown</td><td>最后一轮下注结束，未弃牌者比牌。</td></tr>
+            <tr>
+              <td>亮牌 / 埋牌</td>
+              <td>
+                摊牌时出示手牌，或选择不展示。
+                <strong>赢了也可以埋牌</strong>（朋友局常见礼仪：不强求亮给别人看）。
+              </td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3>B. 位置相关</h3>
+        <table>
+          <thead>
+            <tr><th>术语</th><th>说明要点</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>庄位 Button / BTN</td><td>经销按钮位；盲注圈后通常最后行动，位置较优。</td></tr>
+            <tr><td>小盲 SB</td><td>庄位左手，强制小盲。</td></tr>
+            <tr><td>大盲 BB</td><td>小盲左手，强制大盲。</td></tr>
+            <tr><td>枪口 UTG</td><td>大盲左手，翻前较早行动。</td></tr>
+            <tr><td>中间位 MP</td><td>枪口与后位之间的笼统叫法。</td></tr>
+            <tr>
+              <td>关煞 / 劫位（Cutoff / CO）</td>
+              <td>庄位右手；后位，可较多偷盲。中文「关煞/劫位」保留，括注 Cutoff。</td>
+            </tr>
+            <tr>
+              <td>前位 / 后位（位置优势）</td>
+              <td>
+                前位行动早、信息少；后位行动晚、信息多。
+                <strong>位置只影响「谁先说话」，不改变公共牌本身</strong>
+                （原「共同牌位置感」并入本条，不再单列怪词条）。
+              </td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3>C. 发牌与街道</h3>
+        <table>
+          <thead>
+            <tr><th>术语</th><th>说明要点</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>底牌 / 手牌 Hole cards</td><td>每人私有的两张牌（标准德州）。</td></tr>
+            <tr><td>公共牌 Community cards</td><td>桌面共用、可用来组成五张牌的牌。</td></tr>
+            <tr><td>翻前 Preflop</td><td>发公共牌前，只有手牌的阶段。</td></tr>
+            <tr><td>翻牌 Flop</td><td>三张公共牌；进入翻牌圈。</td></tr>
+            <tr><td>转牌 Turn</td><td>第四张公共牌。</td></tr>
+            <tr><td>河牌 River</td><td>第五张公共牌，最后一轮下注。</td></tr>
+            <tr><td>烧牌 Burn</td><td>发公共牌前弃掉最上一张；朋友局或简化。</td></tr>
+            <tr><td>成牌 / 听牌</td><td>已成型 vs 再一张可能成型（如听同花）。</td></tr>
+            <tr><td>公共牌面 Texture</td><td>是否连张、是否双色等，科普级一句即可。</td></tr>
+            <tr><td>发牌顺序</td><td>通常自小盲起顺时针发手牌；庄钮每手移动。</td></tr>
+          </tbody>
+        </table>
+
+        <h3>6.3 交互</h3>
+        <ul>
+          <li>分组标题清晰分隔；词条「标题 + 正文」列表；全文可纵向滚动。</li>
+          <li>P0 <strong>不做搜索</strong>；不做编辑/收藏。</li>
+          <li>进入术语 Tab 时内容区<strong>滚动重置到顶部</strong>（P0）。</li>
+        </ul>
+      </section>
+
+      <section id="s7">
+        <h2><span class="n">7</span>全局交互与导航</h2>
+        <h3>7.1 Tab 位置与壳层</h3>
+        <ul>
+          <li><strong>已拍板：顶部全局 Tab</strong>，始终在最上方（见 §3）。</li>
+          <li>选中态明显；触控热区高度 ≥ 40px。</li>
+        </ul>
+        <h3>7.2 与底栏 / padding</h3>
+        <ul>
+          <li>仅记分 Tab 显示原固定底栏。</li>
+          <li>牌力、术语：隐藏底栏，且 <strong>去掉</strong> 为底栏预留的 <code>padding-bottom</code>，避免大块空白。</li>
+        </ul>
+        <h3>7.3 滚动</h3>
+        <ul>
+          <li><strong>P0</strong>：每次切入「牌力」或「术语」时，该 Tab 内容滚动到顶部。</li>
+          <li><strong>P1 可选</strong>：各 Tab 记忆 <code>scrollTop</code>。</li>
+        </ul>
+        <h3>7.4 无障碍（P0 基线）</h3>
+        <ul>
+          <li>使用 <code>role="tablist"</code> / <code>tab</code> / <code>tabpanel"</code>。</li>
+          <li>选中 Tab：<code>aria-selected="true"</code>；关联 <code>aria-controls</code> 与 panel 的 <code>id</code>。</li>
+          <li><strong>P1 可选</strong>：键盘左右方向键切换 Tab。</li>
+        </ul>
+      </section>
+
+      <section id="s8">
+        <h2><span class="n">8</span>视觉与内容规范</h2>
+        <ul>
+          <li>延续现有暗色主题；中文为主，英文小字辅助。</li>
+          <li>牌力序号 1–3 可用强调色。</li>
+          <li>P0 牌面示意：文字花色（A♠ K♥…），不依赖外网图；精美牌面组件 P1。</li>
+          <li>文案朋友局口语化、短句。</li>
+        </ul>
+      </section>
+
+      <section id="s9">
+        <h2><span class="n">9</span>数据与实现建议</h2>
+        <ul>
+          <li>无后端：<code>handRanks.ts</code>（含 rank/nameZh/nameEn/example/note）、<code>glossary.ts</code>（分组词条）。</li>
+          <li>UI 状态：<code>activeTab: 'score' | 'ranks' | 'terms'</code>；记分仍 <code>useScoreStore</code>。</li>
+          <li>离开记分 Tab：先 blur 活动输入再切换。</li>
+          <li>P0 可不引入 React Router。</li>
+          <li>测试：Tab 切换数据保留；blur 后数值已 commit；牌力含 A/ wheel / 花色无大小文案；术语无「共同牌位置感」独立条；进牌力/术语 scrollTop=0。</li>
+          <li>部署：静态文案变更，仍 <code>git pull &amp;&amp; ./scripts/deploy.sh</code>；依赖现有 index.html no-cache + assets 长缓存即可。</li>
+        </ul>
+      </section>
+
+      <section id="s10">
+        <h2><span class="n">10</span>验收标准</h2>
+        <ul>
+          <li>三 Tab 可见；默认记分；全局 Tab 在最顶。</li>
+          <li>记分：一手/汇总/列表/底栏齐全；功能与改版前一致。</li>
+          <li>牌力/术语：无一手、无汇总、无记分底栏；无多余底栏 padding 空白。</li>
+          <li>切换后回记分，数据不丢；输入中途切走再回来无脏 draft 异常。</li>
+          <li>牌力页头为「手牌+公共牌最佳五张」语义；含点数序、A 双重身份、wheel 5-high &lt; 6-high、禁 Q-K-A-2-3、花色无大小。</li>
+          <li>10 档从大到小且每档有 example 文字牌面。</li>
+          <li>术语三组齐全；含亮牌/埋牌礼仪；边池仅解释；无独立「共同牌位置感」怪词条。</li>
+          <li>进入牌力/术语时列表在顶部；竖屏可滚动。</li>
+          <li>Tab 具备基本 aria（selected / controls）。</li>
+        </ul>
+      </section>
+
+      <section id="s11">
+        <h2><span class="n">11</span>分期与已拍板</h2>
+        <h3>11.1 分期</h3>
+        <table>
+          <thead>
+            <tr><th>阶段</th><th>内容</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>P0（本版）</strong></td>
+              <td>壳层布局写死；记分迁入；牌力完整+硬性规则文案；术语三组；切 Tab blur；滚动置顶；基础 a11y。</td>
+            </tr>
+            <tr>
+              <td><strong>P1</strong></td>
+              <td>术语搜索；Tab/滚动记忆；方向键切 Tab；更精美牌面；踢脚展开；可选 Straddle 等词条。</td>
+            </tr>
+            <tr>
+              <td><strong>P2</strong></td>
+              <td>起手牌概览、赔率科普、牌力图分享等。</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3>11.2 审查已拍板（无需再问）</h3>
+        <ul>
+          <li>Tab 在<strong>顶部全局壳</strong>；一手只在记分区。</li>
+          <li>花色无大小：<strong>P0 必显</strong>。</li>
+          <li>牌面示意：P0 <strong>文字花色</strong>即可。</li>
+          <li>场外词（现金桌/锦标赛/抽水）：默认不做。</li>
+          <li>进牌力/术语：滚动<strong>重置到顶</strong>。</li>
+        </ul>
+
+        <div class="callout info">
+          <div class="tt">下一步</div>
+          <p style="margin:0;">
+            方案 v0.2 已合入审查。你确认无进一步修改后，可进入实现
+            （Tab 壳 → 布局 padding → 静态数据 → 牌力/术语 UI → 切 Tab blur → 回归记分测试 → 部署）。
+          </p>
+        </div>
+      </section>
+
+      <section id="s12">
+        <h2><span class="n">12</span>修订记录</h2>
+        <table>
+          <thead>
+            <tr><th>版本</th><th>日期</th><th>说明</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>v0.1</td>
+              <td>2026-07-28</td>
+              <td>初版需求，待审查。</td>
+            </tr>
+            <tr>
+              <td>v0.2</td>
+              <td>2026-07-28</td>
+              <td>
+                合入审查：布局分区写死与底栏 padding；页头措辞；花色 P0；
+                Wheel 5-high；切 Tab blur；术语词条修正；example 规范；
+                滚动置顶；aria；部署确认。
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <footer>
+        德州记分 · docs/02-牌力与术语Tab方案.html · v0.2 · 2026-07-28 · 审查已合入
+      </footer>
+    </main>
+  </div>
+</body>
+</html>

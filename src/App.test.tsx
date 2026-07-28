@@ -129,4 +129,52 @@ describe('App integration', () => {
     await user.keyboard('{Enter}')
     expect(document.activeElement).not.toBe(remain)
   })
+
+  it('has three tabs and defaults to score', () => {
+    render(<App />)
+    expect(
+      screen.getByRole('tab', { name: '记分' }).getAttribute('aria-selected'),
+    ).toBe('true')
+    expect(
+      screen.getByRole('tab', { name: '牌力' }).getAttribute('aria-selected'),
+    ).toBe('false')
+    expect(
+      screen.getByRole('tab', { name: '术语' }).getAttribute('aria-selected'),
+    ).toBe('false')
+    expect(screen.getByRole('button', { name: '添加' })).toBeTruthy()
+  })
+
+  it('switches to ranks/terms and back without losing score data', async () => {
+    const user = userEvent.setup()
+    render(<App />)
+    await user.click(screen.getByRole('button', { name: '添加' }))
+    await user.type(screen.getByLabelText('姓名'), '张三')
+
+    await user.click(screen.getByRole('tab', { name: '牌力' }))
+    expect(screen.getByRole('heading', { name: '牌力大小' })).toBeTruthy()
+    expect(screen.getByText(/花色无大小/)).toBeTruthy()
+    expect(screen.getAllByText(/5-high/).length).toBeGreaterThan(0)
+    expect(screen.queryByRole('button', { name: '添加' })).toBeNull()
+
+    await user.click(screen.getByRole('tab', { name: '术语' }))
+    expect(screen.getByRole('heading', { name: '常用术语' })).toBeTruthy()
+    expect(screen.getByText(/操作相关/)).toBeTruthy()
+    expect(screen.queryByRole('button', { name: '添加' })).toBeNull()
+
+    await user.click(screen.getByRole('tab', { name: '记分' }))
+    expect(screen.getByLabelText('姓名')).toHaveProperty('value', '张三')
+    expect(screen.getByRole('button', { name: '添加' })).toBeTruthy()
+  })
+
+  it('closes confirm dialog when leaving score tab', async () => {
+    const user = userEvent.setup()
+    render(<App />)
+    await user.click(screen.getByRole('button', { name: '添加' }))
+    await user.click(screen.getByRole('button', { name: /删除/ }))
+    expect(screen.getByRole('dialog', { name: /删除人员/ })).toBeTruthy()
+
+    await user.click(screen.getByRole('tab', { name: '牌力' }))
+    expect(screen.queryByRole('dialog', { name: /删除人员/ })).toBeNull()
+    expect(screen.getByRole('heading', { name: '牌力大小' })).toBeTruthy()
+  })
 })
