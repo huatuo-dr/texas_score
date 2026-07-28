@@ -3,6 +3,7 @@ import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { AppTabs, type AppTabId } from './components/AppTabs'
 import { ConfirmDialog } from './components/ConfirmDialog'
 import { IntegerField } from './components/IntegerField'
+import { PreflopPanel } from './components/PreflopPanel'
 import { RanksPanel } from './components/RanksPanel'
 import { ShareCard } from './components/ShareCard'
 import { TermsPanel } from './components/TermsPanel'
@@ -555,6 +556,11 @@ export default function App() {
       {activeTab === 'terms' && (
         <div className="ref-scroll" ref={refScrollRef}>
           <TermsPanel />
+        </div>
+      )}
+      {activeTab === 'preflop' && (
+        <div className="ref-scroll" ref={refScrollRef}>
+          <PreflopPanel />
         </div>
       )}
 

@@ -10,7 +10,8 @@
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest",
-    "deploy": "bash scripts/deploy.sh"
+    "deploy": "bash scripts/deploy.sh",
+    "generate:preflop": "node scripts/generate-preflop-matrix.mjs"
   },
   "dependencies": {
     "html-to-image": "^1.11.13",

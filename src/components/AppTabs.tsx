@@ -1,9 +1,10 @@
-export type AppTabId = 'score' | 'ranks' | 'terms'
+export type AppTabId = 'score' | 'ranks' | 'terms' | 'preflop'
 
 const TABS: { id: AppTabId; label: string }[] = [
   { id: 'score', label: '记分' },
   { id: 'ranks', label: '牌力' },
   { id: 'terms', label: '术语' },
+  { id: 'preflop', label: '胜率' },
 ]
 
 interface Props {

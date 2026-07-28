@@ -177,4 +177,16 @@ describe('App integration', () => {
     expect(screen.queryByRole('dialog', { name: /删除人员/ })).toBeNull()
     expect(screen.getByRole('heading', { name: '牌力大小' })).toBeTruthy()
   })
+
+  it('opens preflop heatmap tab with AA default detail', async () => {
+    const user = userEvent.setup()
+    render(<App />)
+    await user.click(screen.getByRole('tab', { name: '胜率' }))
+    expect(screen.getByRole('heading', { name: '起手牌胜率' })).toBeTruthy()
+    expect(screen.getByText(/6 人桌/)).toBeTruthy()
+    expect(screen.getByText(/不构成赌博建议/)).toBeTruthy()
+    expect(screen.getByRole('heading', { name: /详情 · AA/ })).toBeTruthy()
+    expect(screen.getByLabelText(/AA，对子/)).toBeTruthy()
+    expect(screen.queryByRole('button', { name: '添加' })).toBeNull()
+  })
 })

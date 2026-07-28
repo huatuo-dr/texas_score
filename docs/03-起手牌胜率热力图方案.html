@@ -1,0 +1,852 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>德州记分 · 起手牌 13×13 胜率热力图方案</title>
+  <style>
+    :root {
+      --bg: #0f1419;
+      --surface: #1a2332;
+      --surface-2: #243044;
+      --border: #2d3a4f;
+      --text: #e7ecf3;
+      --muted: #9aa8bc;
+      --accent: #3b82f6;
+      --accent-soft: rgba(59, 130, 246, 0.15);
+      --green-soft: rgba(34, 197, 94, 0.12);
+      --amber-soft: rgba(245, 158, 11, 0.12);
+      --radius: 12px;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      --sans: "PingFang SC", "Noto Sans SC", "Microsoft YaHei", system-ui, sans-serif;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      font-family: var(--sans);
+      background: radial-gradient(1000px 500px at 10% -10%, #1e3a5f 0%, transparent 50%), var(--bg);
+      color: var(--text);
+      line-height: 1.7;
+      font-size: 16px;
+    }
+    .layout {
+      display: grid;
+      grid-template-columns: 220px minmax(0, 880px);
+      gap: 28px;
+      max-width: 1160px;
+      margin: 0 auto;
+      padding: 28px 20px 72px;
+    }
+    nav {
+      position: sticky;
+      top: 20px;
+      align-self: start;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 14px 10px;
+      max-height: calc(100vh - 40px);
+      overflow: auto;
+    }
+    nav .t {
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+      padding: 4px 10px 10px;
+      font-weight: 600;
+    }
+    nav a {
+      display: block;
+      color: var(--muted);
+      text-decoration: none;
+      padding: 7px 10px;
+      border-radius: 8px;
+      font-size: 13px;
+    }
+    nav a:hover { background: var(--surface-2); color: var(--text); }
+
+    header.doc {
+      background: linear-gradient(135deg, var(--surface), #1a2838);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 26px;
+      margin-bottom: 20px;
+    }
+    .badges { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+    .badge {
+      font-size: 12px;
+      font-weight: 600;
+      padding: 3px 10px;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      color: #93c5fd;
+      border: 1px solid rgba(59, 130, 246, 0.35);
+    }
+    .badge.ok {
+      background: var(--green-soft);
+      color: #86efac;
+      border-color: rgba(34, 197, 94, 0.35);
+    }
+    header h1 { margin: 0 0 8px; font-size: 26px; line-height: 1.3; }
+    header .sub { margin: 0; color: var(--muted); font-size: 15px; }
+
+    section {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 22px 24px;
+      margin-bottom: 16px;
+    }
+    section h2 {
+      margin: 0 0 14px;
+      font-size: 19px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    section h2 .n {
+      width: 28px;
+      height: 28px;
+      border-radius: 8px;
+      background: var(--accent-soft);
+      color: #93c5fd;
+      font-size: 13px;
+      font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+    h3 { margin: 18px 0 8px; font-size: 15px; color: #dbe7f7; }
+    p, li { color: #d5deea; }
+    ul, ol { padding-left: 1.25em; }
+    li { margin: 5px 0; }
+    strong { color: #fff; }
+    code {
+      font-family: var(--mono);
+      font-size: 0.88em;
+      background: rgba(0,0,0,.35);
+      border: 1px solid var(--border);
+      padding: 1px 6px;
+      border-radius: 6px;
+      color: #bfdbfe;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+      margin: 10px 0 14px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+    th, td {
+      border-bottom: 1px solid var(--border);
+      padding: 9px 11px;
+      text-align: left;
+      vertical-align: top;
+    }
+    th {
+      background: rgba(0,0,0,.28);
+      color: var(--muted);
+      font-size: 12px;
+    }
+    tr:last-child td { border-bottom: none; }
+
+    .callout {
+      border-radius: 10px;
+      padding: 12px 14px;
+      margin: 12px 0;
+      border: 1px solid var(--border);
+      background: rgba(0,0,0,.18);
+    }
+    .callout.info { border-color: rgba(59,130,246,.4); background: var(--accent-soft); }
+    .callout.warn { border-color: rgba(245,158,11,.4); background: var(--amber-soft); }
+    .callout.ok { border-color: rgba(34,197,94,.4); background: var(--green-soft); }
+    .callout .tt { font-weight: 700; font-size: 13px; margin-bottom: 6px; }
+    .callout.info .tt { color: #93c5fd; }
+    .callout.warn .tt { color: #fcd34d; }
+    .callout.ok .tt { color: #86efac; }
+
+    .wire {
+      background: #0b1018;
+      border: 1px dashed #3a4a63;
+      border-radius: 14px;
+      padding: 14px;
+      max-width: 380px;
+      margin: 12px auto;
+      font-size: 12px;
+    }
+    .wire .bar {
+      text-align: center;
+      color: var(--muted);
+      font-size: 11px;
+      margin-bottom: 8px;
+    }
+    .wire .box {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px;
+      margin-bottom: 8px;
+    }
+    .tabs {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 2px;
+      background: #0b1018;
+      border-radius: 10px;
+      padding: 4px;
+    }
+    .tabs span {
+      text-align: center;
+      padding: 8px 2px;
+      border-radius: 8px;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 600;
+    }
+    .tabs span.on { background: #2563eb; color: #fff; }
+
+    .mini-grid {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 2px;
+      font-size: 9px;
+      font-family: var(--mono);
+      text-align: center;
+    }
+    .mini-grid span {
+      aspect-ratio: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 3px;
+      color: #0b1018;
+      font-weight: 700;
+    }
+    .c0 { background: #1e3a5f; color: #94a3b8; }
+    .c1 { background: #1d4ed8; color: #fff; }
+    .c2 { background: #3b82f6; color: #fff; }
+    .c3 { background: #f59e0b; color: #111; }
+    .c4 { background: #ef4444; color: #fff; }
+
+    pre.block {
+      background: #0b1018;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px 14px;
+      font-size: 12.5px;
+      color: #bfdbfe;
+      overflow-x: auto;
+      line-height: 1.55;
+      font-family: var(--mono);
+    }
+
+    footer {
+      text-align: center;
+      color: var(--muted);
+      font-size: 13px;
+      padding: 16px 0 8px;
+    }
+
+    @media (max-width: 820px) {
+      .layout { grid-template-columns: 1fr; padding: 14px 12px 56px; }
+      nav { position: static; display: flex; flex-wrap: wrap; gap: 4px; }
+      nav .t { width: 100%; }
+      section { padding: 16px; }
+      header.doc { padding: 18px 16px; }
+      header h1 { font-size: 22px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <nav>
+      <div class="t">目录</div>
+      <a href="#s1">1. 背景与目标</a>
+      <a href="#s2">2. 概念说明</a>
+      <a href="#s3">3. 与现有功能关系</a>
+      <a href="#s4">4. 产品方案对比</a>
+      <a href="#s5">5. 推荐方案（P0）</a>
+      <a href="#s6">6. 数据模型与来源</a>
+      <a href="#s7">7. 界面与交互</a>
+      <a href="#s8">8. 色阶与图例</a>
+      <a href="#s9">9. 技术实现建议</a>
+      <a href="#s10">10. 范围与非目标</a>
+      <a href="#s11">11. 验收标准</a>
+      <a href="#s12">12. 分期与已拍板</a>
+      <a href="#s13">13. 修订记录</a>
+    </nav>
+
+    <main>
+      <header class="doc">
+        <div class="badges">
+          <span class="badge">文档 · 03</span>
+          <span class="badge ok">状态 · 审查 v0.3 已合入</span>
+          <span class="badge">版本 · v0.3</span>
+        </div>
+        <h1>起手牌 13×13<br />胜率热力图方案</h1>
+        <p class="sub">
+          在「德州记分」工具中增加翻前起手牌（Starting Hands）13×13 热力图，
+          用于朋友局快速查阅「这手大概有多强」。纯前端静态展示，不做实时蒙特卡洛引擎。
+        </p>
+      </header>
+
+      <div class="callout ok" style="margin-bottom:16px;">
+        <div class="tt">v0.3 审查合入</div>
+        <p style="margin:0;color:#d5deea;font-size:14px;">
+          钉死 equity 口径（6 人、5 对手随机、翻前 all-in 到河、chop、无 rake）；
+          唯一数据来源=仓库脚本生成 + meta；
+          S/A/B/C/D 按 equity 分位切分；四 Tab 窄屏约定；
+          默认选中 AA；百分比「约 x.x%」一位小数；页脚合规半句；
+          与 docs/02 交叉引用。
+        </p>
+      </div>
+
+      <section id="s1">
+        <h2><span class="n">1</span>背景与目标</h2>
+        <h3>1.1 背景</h3>
+        <p>
+          现有「牌力」Tab 解决的是<strong>摊牌五张牌型序</strong>（同花顺 &gt; 四条…）。
+          现场另一类高频问题是翻前：「AA 很强、AKs 怎么样、72o 有多差」——
+          对应的是<strong>两张底牌起手牌</strong>的相对强弱，业界常用 <strong>13×13 矩阵热力图</strong>表达。
+        </p>
+        <h3>1.2 目标</h3>
+        <ul>
+          <li>提供可读的 <strong>13×13 起手牌热力图</strong>（竖屏可用）。</li>
+          <li>单元格能识别：对子 / 同花 / 不同花，以及相对强弱（色阶）。</li>
+          <li>点击（或长按）单元格可查看该手的名称与说明（可选展示参考胜率/档位）。</li>
+          <li>与记分、牌型序、术语一样：<strong>查阅向、无后端、不影响记分数据</strong>。</li>
+        </ul>
+        <h3>1.3 非目标（本版）</h3>
+        <ul>
+          <li>实时输入任意手牌做精确 equity 计算。</li>
+          <li>多人桌动态人数切换后重算全部矩阵（可二期）。</li>
+          <li>GTO 策略、开池范围编辑器、训练刷题。</li>
+        </ul>
+      </section>
+
+      <section id="s2">
+        <h2><span class="n">2</span>概念说明（给产品对齐用）</h2>
+        <h3>2.1 13×13 是什么</h3>
+        <p>
+          德州底牌忽略具体花色后，有 <strong>169</strong> 种策略等价手牌。
+          用 13 点（A,K,Q,J,T,9…2）做行列，可铺成矩阵：
+        </p>
+        <ul>
+          <li><strong>对角线</strong>：对子 <code>AA, KK, …, 22</code></li>
+          <li><strong>上三角（或一侧）</strong>：同花 <code>AKs, AQs, …</code>（s = suited）</li>
+          <li><strong>下三角（或另一侧）</strong>：不同花 <code>AKo, AQo, …</code>（o = offsuit）</li>
+        </ul>
+        <p>单元格颜色表示「相对强弱」或「参考胜率档位」，故称热力图。</p>
+
+        <h3>2.2 「胜率」在本产品中的含义（必须写清，避免误解）</h3>
+        <div class="callout warn">
+          <div class="tt">重要免责语义</div>
+          <p style="margin:0;">
+            本图展示的是<strong>预计算、固定假设下的近似 equity</strong>，
+            <strong>不是</strong>当前这一手实时胜率，也<strong>不是</strong>「该不该玩」的建议。
+            UI 页头必须有说明，避免当成计算器精确结果。
+          </p>
+        </div>
+
+        <h3>2.2.1 Equity 精确定义（生成数据前写死 · P0）</h3>
+        <table>
+          <thead>
+            <tr><th>项</th><th>定义（不可偏离）</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="k">胜负口径</td>
+              <td>翻前 <strong>all-in 到河牌</strong> 的 equity；平分底池按 <strong>chop</strong>（平分期望）计入。</td>
+            </tr>
+            <tr>
+              <td class="k">对手模型</td>
+              <td>其余 <strong>5</strong> 人各持<strong>均匀随机</strong>的合法手牌（与自己不冲突发牌）。</td>
+            </tr>
+            <tr>
+              <td class="k">人数</td>
+              <td>正好 <strong>6 人入池</strong>（含自己）。</td>
+            </tr>
+            <tr>
+              <td class="k">Rake</td>
+              <td><strong>不含</strong>抽水。</td>
+            </tr>
+            <tr>
+              <td class="k">单位</td>
+              <td>该手在摊牌的<strong>期望分得底池比例</strong>，数值 ∈ (0, 1)；UI 展示为百分比。</td>
+            </tr>
+          </tbody>
+        </table>
+        <p>页头标准句式（可微调措辞，语义不可少）：</p>
+        <div class="callout info">
+          <div class="tt">页头免责文案</div>
+          <p style="margin:0;">
+            示意：6 人桌，其余 5 人随机手牌，翻前全下到河的近似 equity，仅供朋友局参考，
+            不是实时胜率，也不是建议你该不该玩。
+          </p>
+        </div>
+
+        <h3>2.3 与「牌力」Tab 的差异</h3>
+        <table>
+          <thead>
+            <tr><th></th><th>牌力 Tab（已有）</th><th>本热力图（拟做）</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>比什么</strong></td>
+              <td>摊牌后的五张牌型序</td>
+              <td>翻前两张底牌的相对强弱</td>
+            </tr>
+            <tr>
+              <td><strong>典型问题</strong></td>
+              <td>同花和顺子谁大？</td>
+              <td>AKs 大概有多强？</td>
+            </tr>
+            <tr>
+              <td><strong>粒度</strong></td>
+              <td>10 档牌型</td>
+              <td>169 格起手牌</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section id="s3">
+        <h2><span class="n">3</span>与现有功能关系</h2>
+        <p>当前全局 Tab：<strong>记分 | 牌力 | 术语</strong>。热力图是第四块查阅能力，入口有三种放法（见 §4）。</p>
+        <ul>
+          <li>不读写 <code>useScoreStore</code>，不改持久化结构。</li>
+          <li>部署仍为静态资源；发版 <code>git pull &amp;&amp; ./scripts/deploy.sh</code>。</li>
+          <li>切换 Tab 时继续遵守：离开记分 blur / 关确认与分享弹层。</li>
+        </ul>
+      </section>
+
+      <section id="s4">
+        <h2><span class="n">4</span>产品方案对比</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>方案</th>
+              <th>入口</th>
+              <th>优点</th>
+              <th>缺点</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>A. 第四 Tab「胜率」</strong>（推荐）</td>
+              <td>记分 | 牌力 | 术语 | <strong>胜率</strong></td>
+              <td>入口稳定、与牌型序并列清晰；符合「查阅四件套」</td>
+              <td>顶栏变挤（可用更短文案「热力」）</td>
+            </tr>
+            <tr>
+              <td><strong>B. 挂在「牌力」内二级切换</strong></td>
+              <td>牌力 → 子 Tab：成牌序 | 起手牌</td>
+              <td>顶栏仍三 Tab</td>
+              <td>「牌力」一词过载；嵌套一层，发现成本高</td>
+            </tr>
+            <tr>
+              <td><strong>C. 术语旁独立入口 / 更多菜单</strong></td>
+              <td>记分更多里「胜率图」</td>
+              <td>不改主导航</td>
+              <td>与记分操作混在一起，语义差</td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="callout ok">
+          <div class="tt">已选：方案 A · Tab 文案「胜率」</div>
+          <p style="margin:0;">
+            第四 Tab 固定为 <strong>「胜率」</strong>。
+            因文案易被理解成实时计算，页头<strong>必须</strong>有免责与假设说明（6 人、近似参考）。
+          </p>
+        </div>
+      </section>
+
+      <section id="s5">
+        <h2><span class="n">5</span>推荐方案（P0 范围）</h2>
+        <h3>5.1 信息架构</h3>
+        <div class="wire" aria-hidden="true">
+          <div class="bar">─ 四 Tab 竖屏 ─</div>
+          <div class="box">
+            <div class="tabs">
+              <span>记分</span>
+              <span>牌力</span>
+              <span>术语</span>
+              <span class="on">胜率</span>
+            </div>
+          </div>
+          <div class="box">
+            <div style="font-size:11px;color:var(--muted);margin-bottom:6px;">
+              翻前起手牌参考 · 固定 6 人 · 近似胜率（非实时）
+            </div>
+            <div class="mini-grid">
+              <span class="c4">AA</span><span class="c4">AKs</span><span class="c3">AQs</span><span class="c3">AJs</span><span class="c2">ATs</span><span class="c1">…</span>
+              <span class="c3">AKo</span><span class="c4">KK</span><span class="c3">KQs</span><span class="c2">KJs</span><span class="c2">…</span><span class="c0">…</span>
+              <span class="c2">AQo</span><span class="c2">KQo</span><span class="c4">QQ</span><span class="c2">…</span><span class="c0">…</span><span class="c0">…</span>
+              <span class="c1">…</span><span class="c1">…</span><span class="c1">…</span><span class="c3">JJ</span><span class="c0">…</span><span class="c0">72o</span>
+              <span class="c0">…</span><span class="c0">…</span><span class="c0">…</span><span class="c0">…</span><span class="c2">22</span><span class="c0">…</span>
+              <span class="c0">…</span><span class="c0">…</span><span class="c0">…</span><span class="c0">…</span><span class="c0">…</span><span class="c0">…</span>
+            </div>
+            <div style="margin-top:8px;font-size:10px;color:var(--muted);">
+              点选格子 → 下方详情：AKs · 同花 · 参考档位/胜率
+            </div>
+          </div>
+        </div>
+
+        <h3>5.2 P0 功能清单</h3>
+        <table>
+          <thead>
+            <tr><th>功能</th><th>说明</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>13×13 矩阵</strong></td>
+              <td>固定顺序 A→2 行列；对角线对子；一侧 suited、一侧 offsuit（实现时统一约定：上三角 = s，下三角 = o，或相反，文档与图例一致即可）。</td>
+            </tr>
+            <tr>
+              <td><strong>色阶填充</strong></td>
+              <td>按预置分值/胜率映射颜色；对子可用略不同描边以增强可扫读性。</td>
+            </tr>
+            <tr>
+              <td><strong>图例</strong></td>
+              <td>弱 → 强 色条 + 简短假设说明（人数/对手模型）。</td>
+            </tr>
+            <tr>
+              <td><strong>点选详情</strong></td>
+              <td>
+                点击单元格高亮；下方<strong>同时</strong>展示：
+                手牌名（如 AKs）、类型（对子/同花/不同花）、
+                <strong>约 x.x%</strong>（一位小数）+ <strong>档位 S/A/B/C/D</strong>。
+                默认选中 <strong>AA</strong>，详情区不空白。
+              </td>
+            </tr>
+            <tr>
+              <td><strong>免责说明</strong></td>
+              <td>
+                使用 §2.2.1 标准句式；与 <code>meta</code> 中口径字段一致。
+                页脚半句：不构成赌博建议；请遵守当地法律法规。
+              </td>
+            </tr>
+            <tr>
+              <td><strong>四 Tab 窄屏</strong></td>
+              <td>
+                「记分|牌力|术语|胜率」不换行、不缩成图标；可略降字号/字距；
+                热区高度 ≥ 40px。
+              </td>
+            </tr>
+            <tr>
+              <td><strong>竖屏布局</strong></td>
+              <td>矩阵可横向轻微缩小字号；优先整图同屏可见，必要时矩阵区单独横向滚动（尽量避免双轴滚）。</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3>5.3 P0 不做</h3>
+        <ul>
+          <li>切换 2/6/9 人实时重算整表（二期：多套预置表切换）。</li>
+          <li>格子内显示完整百分数（太挤）；详情区可显示一位小数百分比或「档位」。</li>
+          <li>导出图片分享（可 P1）。</li>
+        </ul>
+      </section>
+
+            <section id="s6">
+        <h2><span class="n">6</span>数据模型与来源</h2>
+        <h3>6.1 唯一真相来源（P0 写死）</h3>
+        <div class="callout ok">
+          <div class="tt">唯一来源</div>
+          <p style="margin:0;">
+            使用仓库内<strong>离线脚本</strong>按 §2.2.1 口径生成 169 格数据，
+            产物提交为 <code>src/data/preflopMatrix.ts</code>（或等价 JSON 再 export）。
+            <strong>不以</strong>手写表或未标注出处的第三方文件为并行真相；
+            若参考公开算法/实现，须在 <code>meta.source</code> 写明并保证脚本可复现。
+          </p>
+        </div>
+        <ul>
+          <li>脚本路径建议：<code>scripts/generate-preflop-matrix.mjs</code>（或 .ts + 文档说明运行方式）。</li>
+          <li>生成结果<strong>必须入库</strong>，运行时只读常量，用户端不执行模拟。</li>
+          <li><code>meta</code> 至少包含：<code>players</code>、<code>source</code>、<code>version</code>、口径摘要、<code>tierBreaks</code>。</li>
+        </ul>
+
+        <h3>6.2 Equity 与展示格式</h3>
+        <ul>
+          <li>存储：<code>equity ∈ (0, 1)</code>，禁止 0/1 贴边与 NaN（模拟应极难出现 0/1，若出现需审查）。</li>
+          <li>UI 百分比：统一 <strong>「约 x.x%」一位小数</strong>（例：0.342 →「约 34.2%」）；详情与 <code>aria-label</code> 同格式。</li>
+        </ul>
+
+        <h3>6.3 档位 S/A/B/C/D（生成阶段写死）</h3>
+        <p>
+          <strong>着色主用 equity 连续色阶</strong>；<strong>tier 仅作标签</strong>，不得另搞一套与 equity 矛盾的色阶。
+          档位在生成脚本中按<strong>全局 169 手 equity 分位</strong>切分并写入每个 cell（阈值记入 <code>meta.tierBreaks</code>）：
+        </p>
+        <table>
+          <thead>
+            <tr><th>档位</th><th>规则（P0 默认，生成后可微调分位但须写入 meta）</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><strong>S</strong></td><td>equity 最高约 <strong>5%</strong> 的手（约 8～9 手）</td></tr>
+            <tr><td><strong>A</strong></td><td>其后约 <strong>10%</strong></td></tr>
+            <tr><td><strong>B</strong></td><td>中上约 <strong>20%</strong></td></tr>
+            <tr><td><strong>C</strong></td><td>中下约 <strong>30%</strong></td></tr>
+            <tr><td><strong>D</strong></td><td>其余</td></tr>
+          </tbody>
+        </table>
+        <p>同分位边界：equity 降序稳定排序后切段；同 equity 按 code 字典序保证可复现。</p>
+
+        <h3>6.4 数据形状</h3>
+<pre class="block">{
+  ranks: ['A','K','Q','J','T','9','8','7','6','5','4','3','2'],
+  meta: {
+    players: 6,
+    opponents: 5,
+    model: 'random_uniform_hole_cards',
+    equityDefinition: 'preflop_allin_to_river_chop_no_rake',
+    source: 'scripts/generate-preflop-matrix.mjs',
+    version: '1',
+    tierBreaks: { /* 生成时写入的分位或阈值说明 */ },
+    disclaimer: '近似参考，非实时胜率'
+  },
+  // row===col pair; row&lt;col suited; row&gt;col offsuit
+  cells: HandCell[][]  // 13x13
+  // HandCell:
+  {
+    code: 'AKs',
+    kind: 'pair' | 'suited' | 'offsuit',
+    equity: 0.342,
+    tier: 'S' | 'A' | 'B' | 'C' | 'D'
+  }
+}</pre>
+
+        <h3>6.5 冒烟断言（CI / 单测必跑）</h3>
+        <ul>
+          <li>维度 13×13，169 格齐全；无 NaN；每格 <code>equity ∈ (0,1)</code>。</li>
+          <li><code>AA.equity &gt; KK.equity &gt; QQ.equity</code>。</li>
+          <li><code>AKs.equity &gt; AKo.equity</code>；<code>AKs.equity &gt; AQs.equity</code>。</li>
+          <li>全局 max 为 AA（或并列时含 AA）；72o 位于最弱分位（如 D 且 equity 接近最小）。</li>
+          <li>对角线全为 pair；上三角 suited、下三角 offsuit。</li>
+          <li>每个 cell 的 tier 与 meta.tierBreaks 规则一致（或与生成快照一致）。</li>
+        </ul>
+      </section>
+
+      <section id="s7">
+        <h2><span class="n">7</span>界面与交互</h2>
+        <h3>7.1 页面结构（自上而下）</h3>
+        <ol>
+          <li>全局 Tab（记分 | 牌力 | 术语 | <strong>胜率</strong>）</li>
+          <li>页头标题 + §2.2.1 免责/假设说明</li>
+          <li>色阶图例（横条：弱 → 强；主映射 equity）</li>
+          <li>矩阵（主视觉）</li>
+          <li>详情卡：默认选中 <strong>AA</strong>；展示 code、类型、<strong>约 x.x%</strong>、<strong>档位</strong></li>
+          <li>页脚半句合规提示（见下）</li>
+        </ol>
+
+        <h3>7.2 四 Tab 窄屏约定（P0）</h3>
+        <ul>
+          <li>文案短：「胜率」两字已定；四 Tab <strong>不换行、不缩成纯图标</strong>。</li>
+          <li>可略降 <code>font-size</code> / 收紧 <code>letter-spacing</code>。</li>
+          <li>每个 Tab 热区高度 <strong>≥ 40px</strong>。</li>
+        </ul>
+
+        <h3>7.3 矩阵交互与格子文案</h3>
+        <ul>
+          <li><strong>点击</strong>选中并保持（避免误触清空）；选中描边高亮 + 详情更新。</li>
+          <li>默认选中 <code>AA</code>，首屏详情非空。</li>
+          <li>格子文案：对子 <code>AA</code>；同花 <code>AKs</code>；不同花 <code>AKo</code>；整表缩字优先一屏宽，尽量避免双轴滚动。</li>
+          <li>极窄屏：完整名称靠 <code>aria-label</code>；可见文案可再压缩但不可去掉可达性信息。</li>
+          <li>触控：单元格尽量 ≥ 约 22–28px。</li>
+        </ul>
+
+        <h3>7.4 与壳层一致性</h3>
+        <ul>
+          <li>无记分底栏；无「一手」工具条；无底栏 padding。</li>
+          <li>进入该 Tab 时滚动置顶。</li>
+          <li>切 Tab 继续清理确认框/分享弹层（与记分实现一致）。</li>
+        </ul>
+
+        <h3>7.5 无障碍</h3>
+        <ul>
+          <li>矩阵 <code>role="grid"</code> / <code>gridcell</code>；<code>aria-label</code> 含手牌、约 x.x%、档位。</li>
+          <li>详情区可用 <code>aria-live="polite"</code>。</li>
+        </ul>
+
+        <h3>7.6 合规语气（轻量）</h3>
+        <p>页脚或详情下方固定半句：</p>
+        <div class="callout info">
+          <div class="tt">页脚</div>
+          <p style="margin:0;">不构成赌博建议；请遵守当地法律法规。</p>
+        </div>
+      </section>
+
+      <section id="s8">
+        <h2><span class="n">8</span>色阶与图例</h2>
+        <ul>
+          <li><strong>着色唯一依据：equity</strong> 连续映射；tier 不参与主色阶（避免两套矛盾）。</li>
+          <li>冷色（弱）→ 暖色（强）；暗色主题保证对比度。</li>
+          <li>对子可加细描边，方便扫对角线。</li>
+          <li>图例：<code>弱 ────── 强</code> +「颜色越暖，参考 equity 越高」。</li>
+          <li>色盲友好：选中态用描边，不只靠颜色。</li>
+        </ul>
+      </section>
+
+      <section id="s9">
+        <h2><span class="n">9</span>技术实现建议</h2>
+        <ul>
+          <li><strong>组件</strong>：<code>PreflopHeatmapPanel.tsx</code> + 矩阵 + 详情；默认 state 选中 AA。</li>
+          <li><strong>数据</strong>：<code>scripts/generate-preflop-matrix.*</code> 生成 → <code>src/data/preflopMatrix.ts</code> 入库。</li>
+          <li><strong>着色</strong>：<code>equityToColor(e)</code> 纯函数；<code>formatEquityPct(e) =&gt; '约 34.2%'</code>。</li>
+          <li><strong>Tab</strong>：<code>AppTabId</code> 增加 <code>'preflop'</code>；标签「胜率」；四列窄屏样式见 §7.2。</li>
+          <li><strong>性能</strong>：169 格静态 DOM 即可。</li>
+          <li><strong>测试</strong>：§6.5 冒烟 + UI 选中 AA/AKs 详情含 % 与 tier + 免责文案 + 切 Tab 不丢记分。</li>
+          <li><strong>文档交叉</strong>：本能力落地 docs/02 中 P2「起手牌概览」；以本文 03 为准。</li>
+        </ul>
+<pre class="block">// 行列约定（已拍板）
+// ranks：A K Q J T 9 8 7 6 5 4 3 2
+// row === col → pair
+// row &lt; col  → suited (s)  上三角
+// row &gt; col  → offsuit (o) 下三角
+// 色阶 = f(equity)；tier 仅标签</pre>
+      </section>
+
+      <section id="s10">
+        <h2><span class="n">10</span>范围与非目标（汇总）</h2>
+        <table>
+          <thead>
+            <tr><th>In（P0）</th><th>Out</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>四 Tab 或等价稳定入口 + 13×13 热力 + 图例 + 点选详情 + 免责</td>
+              <td>实时模拟、GTO 范围编辑、多人数在线重算、后端 API</td>
+            </tr>
+            <tr>
+              <td>预计算静态表</td>
+              <td>用户上传自定义 equity 表（可 P2）</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section id="s11">
+        <h2><span class="n">11</span>验收标准</h2>
+        <ul>
+          <li>可进入「热力/起手/胜率」查阅页，竖屏可完整操作矩阵（允许字号缩小）。</li>
+          <li>矩阵为 13×13；能区分 pair / suited / offsuit。</li>
+          <li>颜色随强弱变化；有图例。</li>
+          <li>点击格子，详情显示正确 code、类型、<strong>约 x.x%</strong>（一位小数）与 <strong>S/A/B/C/D</strong>。</li>
+          <li>默认选中 AA；详情非空。</li>
+          <li>页头含 §2.2.1 口径说明；页脚含合规半句。</li>
+          <li>矩阵上三角 s、下三角 o、对角线 pair；§6.5 冒烟断言通过。</li>
+          <li><code>meta.source</code> / <code>version</code> 存在；着色仅依赖 equity。</li>
+          <li>四 Tab 窄屏不换行；该页无记分底栏；回记分数据仍在。</li>
+          <li>构建与测试通过。</li>
+        </ul>
+      </section>
+
+      <section id="s12">
+        <h2><span class="n">12</span>分期与已拍板</h2>
+        <h3>12.1 分期</h3>
+        <table>
+          <thead>
+            <tr><th>阶段</th><th>内容</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>P0</strong></td>
+              <td>
+                Tab「胜率」+ 静态 13×13（6 人近似表）+ 色阶 + 点选详情（% + 档位）+ 免责；
+                s/o 上下三角约定。
+              </td>
+            </tr>
+            <tr>
+              <td><strong>P1</strong></td>
+              <td>2/6/9 人预置表切换；格子显示档位字母；分享长图。</td>
+            </tr>
+            <tr>
+              <td><strong>P2</strong></td>
+              <td>点选两张牌查表；简单范围高亮（如「顶级 5%」）。</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3>12.2 产品拍板（v0.2）</h3>
+        <table>
+          <thead>
+            <tr><th>项</th><th>结论</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Tab 文案</td><td><strong>胜率</strong></td></tr>
+            <tr><td>人数</td><td><strong>固定 6 人</strong></td></tr>
+            <tr><td>详情</td><td><strong>约 x.x% + 档位 S–D</strong></td></tr>
+            <tr><td>矩阵 s/o</td><td><strong>上 s / 下 o / 对角 pair</strong></td></tr>
+            <tr><td>数据</td><td><strong>近似参考预计算表</strong></td></tr>
+          </tbody>
+        </table>
+
+        <h3>12.3 数据与实现拍板（v0.3 审查）</h3>
+        <table>
+          <thead>
+            <tr><th>项</th><th>结论</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Equity 口径</td><td>§2.2.1 全表写死（all-in 到河、chop、无 rake、5 随机对手）</td></tr>
+            <tr><td>唯一来源</td><td>仓库脚本生成 → 提交 preflopMatrix；含 meta.source/version</td></tr>
+            <tr><td>Tier</td><td>按 equity 分位 S/A/B/C/D；着色只用 equity</td></tr>
+            <tr><td>默认选中</td><td><strong>AA</strong></td></tr>
+            <tr><td>% 格式</td><td><strong>约 x.x%</strong> 一位小数</td></tr>
+            <tr><td>四 Tab 窄屏</td><td>不换行、不图标化；高 ≥40px</td></tr>
+            <tr><td>合规</td><td>页脚半句法律提示</td></tr>
+          </tbody>
+        </table>
+
+        <div class="callout info">
+          <div class="tt">下一步（生成数据前请先满足 §2.2.1 + §6）</div>
+          <p style="margin:0;">
+            1）实现/锁定生成脚本与 meta<br />
+            2）生成并提交 preflopMatrix + 冒烟测试<br />
+            3）Tab「胜率」UI + 详情 + 四 Tab 样式<br />
+            4）回归记分与部署
+          </p>
+        </div>
+      </section>
+
+      <section id="s13">
+        <h2><span class="n">13</span>修订记录</h2>
+        <table>
+          <thead>
+            <tr><th>版本</th><th>日期</th><th>说明</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>v0.1</td>
+              <td>2026-07-28</td>
+              <td>初版方案，待拍板入口与数据策略。</td>
+            </tr>
+            <tr>
+              <td>v0.2</td>
+              <td>2026-07-28</td>
+              <td>拍板：Tab「胜率」、6 人、详情 %+档、s/o、近似表。</td>
+            </tr>
+            <tr>
+              <td>v0.3</td>
+              <td>2026-07-28</td>
+              <td>
+                钉死 equity 口径；唯一脚本来源与冒烟断言；分位 tier；
+                四 Tab 窄屏；默认 AA；约 x.x%；合规页脚；与 02 交叉引用。
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <footer>
+        德州记分 · docs/03-起手牌胜率热力图方案.html · v0.3 · 2026-07-28 · 审查已合入
+      </footer>
+    </main>
+  </div>
+</body>
+</html>
