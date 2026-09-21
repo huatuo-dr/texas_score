@@ -790,6 +790,20 @@ input {
   line-height: 1;
 }
 
+.buyin-hands {
+  min-width: 3.5rem;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  padding: 0 4px;
+  user-select: none;
+}
+
+.stepper button:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
 .stepper input,
 .remain-input {
   width: 100%;
