@@ -281,7 +281,7 @@ export default function App() {
               </div>
               <div className="metric">
                 <span className="label">总筹码</span>
-                <strong>{summary.totalChips}</strong>
+                <strong>{Math.floor(summary.totalChips / state.unitPerHand)}手</strong>
               </div>
               <div className="metric">
                 <span className="label">结果</span>
@@ -370,15 +370,17 @@ export default function App() {
                           <button
                             type="button"
                             aria-label="减少买入"
+                            disabled={p.buyIn <= 0}
                             onClick={() => stepBuyIn(p.id, -1)}
                           >
                             −
                           </button>
-                          <IntegerField
-                            value={p.buyIn}
-                            ariaLabel="买入"
-                            onCommit={(n) => patchPlayer(p.id, { buyIn: n })}
-                          />
+                          <span
+                            className="buyin-hands"
+                            aria-label="买入"
+                          >
+                            {Math.floor(p.buyIn / state.unitPerHand)}手
+                          </span>
                           <button
                             type="button"
                             aria-label="增加买入"

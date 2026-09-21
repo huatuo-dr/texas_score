@@ -16,9 +16,7 @@ describe('App integration', () => {
     const user = userEvent.setup()
     render(<App />)
     await user.click(screen.getByRole('button', { name: '添加' }))
-    expect((screen.getByLabelText('买入') as HTMLInputElement).value).toBe(
-      '2000',
-    )
+    expect(screen.getByLabelText('买入').textContent).toBe('1手')
     expect((screen.getByLabelText('剩余') as HTMLInputElement).value).toBe(
       '2000',
     )
@@ -41,7 +39,7 @@ describe('App integration', () => {
     render(<App />)
     await user.click(screen.getByRole('button', { name: '添加' }))
     await user.click(screen.getByRole('button', { name: '增加买入' }))
-    expect(screen.getByLabelText('买入')).toHaveProperty('value', '4000')
+    expect(screen.getByLabelText('买入').textContent).toBe('2手')
     expect(screen.getByLabelText('结果').textContent).toBe('-2000')
   })
 
@@ -90,23 +88,22 @@ describe('App integration', () => {
     const dialog = screen.getByRole('dialog', { name: /清空记分/ })
     await user.click(within(dialog).getByRole('button', { name: '确定清空' }))
     expect(screen.getByLabelText('姓名')).toHaveProperty('value', '张三')
-    expect(screen.getByLabelText('买入')).toHaveProperty('value', '2000')
+    expect(screen.getByLabelText('买入').textContent).toBe('1手')
     expect(screen.getByLabelText('剩余')).toHaveProperty('value', '2000')
     expect(screen.getByLabelText('结果').textContent).toBe('0')
   })
 
-  it('rejects non-integer input in buy-in field', async () => {
+  it('buy-in is hands-only display without editable input', async () => {
     const user = userEvent.setup()
     render(<App />)
     await user.click(screen.getByRole('button', { name: '添加' }))
-    const buyIn = screen.getByLabelText('买入') as HTMLInputElement
-    await user.clear(buyIn)
-    await user.type(buyIn, '1.5')
-    // decimal rejected: should not become 1.5
-    expect(buyIn.value.includes('.')).toBe(false)
+    const buyIn = screen.getByLabelText('买入')
+    expect(buyIn.tagName).toBe('SPAN')
+    expect(buyIn.textContent).toBe('1手')
+    expect(screen.queryByRole('textbox', { name: '买入' })).toBeNull()
   })
 
-  it('blurs name/buyIn/remain on Enter', async () => {
+  it('blurs name/remain on Enter', async () => {
     const user = userEvent.setup()
     render(<App />)
     await user.click(screen.getByRole('button', { name: '添加' }))
@@ -116,12 +113,6 @@ describe('App integration', () => {
     expect(document.activeElement).toBe(name)
     await user.keyboard('{Enter}')
     expect(document.activeElement).not.toBe(name)
-
-    const buyIn = screen.getByLabelText('买入') as HTMLInputElement
-    buyIn.focus()
-    expect(document.activeElement).toBe(buyIn)
-    await user.keyboard('{Enter}')
-    expect(document.activeElement).not.toBe(buyIn)
 
     const remain = screen.getByLabelText('剩余') as HTMLInputElement
     remain.focus()

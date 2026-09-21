@@ -149,11 +149,11 @@ export function useScoreStore() {
     (id: string, direction: 1 | -1) => {
       update((prev) => ({
         ...prev,
-        players: prev.players.map((p) =>
-          p.id === id
-            ? { ...p, buyIn: p.buyIn + direction * prev.unitPerHand }
-            : p,
-        ),
+        players: prev.players.map((p) => {
+          if (p.id !== id) return p
+          const next = p.buyIn + direction * prev.unitPerHand
+          return { ...p, buyIn: Math.max(0, next) }
+        }),
       }))
     },
     [update],
